@@ -1,6 +1,6 @@
 #include <fstream>
 #include <iostream>
-#include <vector>
+#include <regex>
 
 int ocurrences(const std::string& str, char c)
 {
@@ -35,9 +35,13 @@ int main()
         }
     }
 
+    std::regex record("\"(.*)\";\"?(.*)\"?;\"?(.*)\"?;\"?(.*)\"?;\"?(.*)\"?;\"?(.*)\"?;\"?(.*)\"?");
+
     for (auto a : completition) {
-        std::cout << " \n -- Line # : \n\n";
-        std::cout << a << '\n';
+        if (std::regex_match(a, record)) {
+            std::cout << "Record Matched\n";
+        } else {
+            std::cout << "Record Not Matched\n";
+        }
     }
-    std::cout << "\n\nRegisterCount : " << completition.size();
 }
