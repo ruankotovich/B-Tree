@@ -16,8 +16,9 @@ struct Paper {
     char snippet[1024];
 };
 
-inline char pairClass(char previous, char current)
+inline char charClass(char previous, char current)
 {
+    // printf("[%c] [%c]\n", previous, current);
     switch (previous) {
     case '\"': {
 
@@ -27,19 +28,40 @@ inline char pairClass(char previous, char current)
 
     } break;
 
-    case 'L': {
-        if (current == ';' || current == '\n' || current == EOF) {
+    case ';': {
+
+        if (current == '\"') {
+            return R_SOR;
+        }
+
+    } break;
+
+    case '\r': {
+        if (current == '\n' || current == EOF) {
             return R_EOC;
         }
+    }
+    }
+    return R_NOTHING;
+}
+
+inline char firstContact(char previous, char current)
+{
+    // printf("[%c] [%c]\n", previous, current);
+    switch (previous) {
+    case '\"': {
+
+        return R_EOC;
     } break;
 
     case ';': {
         if (current == ';') {
             return R_EOC;
         }
-        if (current == '\"' || current == 'N') {
-            return R_SOR;
+        if (current == 'N') {
+            return R_SON;
         }
+
     } break;
     }
     return R_NOTHING;
@@ -50,13 +72,23 @@ inline void readColumn(FILE* file, char* buffer, char previous)
     char current = fgetc(file);
     int pointer = 0;
     char type;
-    while ((type = pairClass(previous, current)) < R_EOC) {
-        if (type < R_SOR) {
-            buffer[pointer++] = previous = current;
-        } else {
-            fscanf(file, "UL");
-        }
-        current = fgetc(file);
+
+    type = firstContact(previous, current);
+    if (type != R_SON) {
+        do {
+            previous = current;
+
+            if (type < R_SOR) {
+                buffer[pointer++] = previous;
+            }
+
+            current = fgetc(file);
+        } while ((type = charClass(previous, current)) < R_EOC);
+    } else {
+        fscanf(file, "ULL\n");
+        fscanf(file, "ULL\r\n");
+        fscanf(file, "ULL;");
+        pointer = 1;
     }
     buffer[pointer - 1] = '\0';
 }
@@ -78,32 +110,33 @@ void fileParser(FILE* file)
 
         // READ TITLE
         readColumn(file, readBuffer, ';');
-        printf("%s\n", readBuffer);
+        printf("Title : %s\n", readBuffer);
 
         // READ YEAR
         fscanf(file, "\"%d\";", &yearBuffer);
-        printf("%d\n", yearBuffer);
+        printf("Year : %d\n", yearBuffer);
 
         // READ AUTHOR
         readColumn(file, readBuffer, ';');
-        printf("%s\n", readBuffer);
+        printf("Author : %s\n", readBuffer);
 
         // READ CITATION
         fscanf(file, "\"%d\";", &citationsBuffer);
-        printf("%d\n", citationsBuffer);
+        printf("Citation : %d\n", citationsBuffer);
 
         // READ DATE
         readColumn(file, readBuffer, ';');
-        printf("%s\n", readBuffer);
+        printf("Date : %s\n", readBuffer);
 
         // READ SNIPPET
         readColumn(file, readBuffer, ';');
-        printf("%s\n", readBuffer);
+        printf("Snippet : %s\n", readBuffer);
     }
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    FILE* file = fopen("./misc/pattern.csv", "r");
+    const char* filename = argv[1];
+    FILE* file = fopen(filename, "rb+");
     fileParser(file);
 }
