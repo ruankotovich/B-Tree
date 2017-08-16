@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "*.atg": "java",
+    "array": "cpp"
+  }
+}
