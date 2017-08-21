@@ -25,6 +25,5 @@ public:
     IOHandler(FILE*);
     bool hasNext();
     void parseNext();
-    // friend std::ostream& operator<<(std::ostream& os, const IOHandler& dt);
     void operator>>(Article_t&);
 };

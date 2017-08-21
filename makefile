@@ -23,6 +23,8 @@ iohandle.o: article.o $(SRC_PATH)/iohandler.cpp $(INCLUDE_PATH)/iohandler.hpp
 article.o: $(SRC_PATH)/article.cpp $(INCLUDE_PATH)/article.hpp $(INCLUDE_PATH)/json.hpp
 	$(CC) -c $(SRC_PATH)/article.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
+block.o: article.o byteparser.o $(SRC_PATH)/block.cpp $(INCLUDE_PATH)/block.hpp
+	$(CC) -c $(SRC_PATH)/block.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
 clean: 
 	rm -rf **.o
