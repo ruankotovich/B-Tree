@@ -6,7 +6,8 @@ int main(int argc, char* argv[])
     while (handler.hasNext()) {
         Article_t article;
         handler >> article;
-        std::cout << article.toString() << "\n\n" << std::endl;
+        std::cout << article.toString() << "\n\n"
+                  << std::endl;
         handler.parseNext();
     }
 }
