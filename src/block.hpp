@@ -9,7 +9,7 @@ struct Block_t {
     BYTE block_header[RECORD_COUNT_SIZE];
     BYTE record_content[RECORD_AREA_SIZE];
     bool tryPutArticle(Article_t&);
-    Article_t* getArticle(int);
+    Article_t* getArticle(unsigned int);
 };
 
 union Article_Interpretation_t {

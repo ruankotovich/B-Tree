@@ -2,8 +2,8 @@
 
 bool Block_t::tryPutArticle(Article_t& article)
 {
-    int position = i_fromByteArray(this->block_header, 0);
-    int realPosition = position * sizeof(Article_t);
+    unsigned int position = i_fromByteArray(this->block_header, 0);
+    unsigned int realPosition = position * sizeof(Article_t);
 
     if (realPosition < BLOCK_SIZE - sizeof(Article_t)) {
         Article_Interpretation_t* articleOnBytes = (Article_Interpretation_t*)(&this->record_content[realPosition]);
@@ -15,7 +15,7 @@ bool Block_t::tryPutArticle(Article_t& article)
     return false;
 }
 
-Article_t* Block_t::getArticle(int position)
+Article_t* Block_t::getArticle(unsigned int position)
 {
     Article_Interpretation_t* articleOnBytes = (Article_Interpretation_t*)(&this->record_content[sizeof(Article_t) * position]);
     return (&articleOnBytes->article);
