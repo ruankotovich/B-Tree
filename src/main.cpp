@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
     while (handler.hasNext()) {
         Article_t article;
         handler >> article;
-        block.putArticle(article);
+        block.tryPutArticle(article);
         // std::cout << article.toString() << "\n\n"
         //           << std::endl;
         std::cout << block.getArticle(0)->toString() << "\n\n"
