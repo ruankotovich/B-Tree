@@ -56,7 +56,7 @@ static inline char pairClass(char previous, char current)
 }
 
 static inline void readColumn(FILE* file, char* buffer, char previous)
-{
+{ //"1";"abacate";NULL;;"2"
     char current = fgetc(file);
     int pointer = 0;
     char type;

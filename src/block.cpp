@@ -1,5 +1,13 @@
 #include "block.hpp"
 
+bool Block_t::hasSpace()
+{
+    unsigned char position = ((Header_Interpretation_t*)(&this->content[0]))->struct_header.count;
+    unsigned int realPosition = RECORD_HEADER_SIZE + (position * sizeof(Article_t));
+
+    return (realPosition < BLOCK_SIZE - sizeof(Article_t));
+}
+
 bool Block_t::tryPutArticle(Article_t& article)
 {
     Header_Interpretation_t* headerOnBytes = (Header_Interpretation_t*)(&this->content[0]);

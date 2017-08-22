@@ -4,20 +4,32 @@
 #include <cstdlib>
 #include <iostream>
 
+
 int main(int argc, char* argv[])
 {
     IOHandler handler(fopen("./files/pattern.csv", "r"));
-    FILE* blockFile = fopen("./test/pattern.block", "ab+");
-
+    FILE* blockFile = fopen("./test/pattern.block", "wb+");
+    int lastId = 0;
     Article_t currentArticle;
 
     while (handler.hasNext()) {
         Block_t currentBlock;
 
-        do {
-            handler.parseNext();
+        while (currentBlock.hasSpace() && handler.hasNext()) {
             handler >> currentArticle;
-        } while (currentBlock.tryPutArticle(currentArticle) && handler.hasNext());
+            handler.parseNext();
+
+            currentBlock.tryPutArticle(currentArticle);
+
+            int qntInvalidToWrite = currentArticle.id - lastId - 1;
+            lastId = currentArticle.id;
+
+            if (qntInvalidToWrite > 0) {
+                for (; qntInvalidToWrite; qntInvalidToWrite--) {
+                    fwrite(&Block_Handler_T::invalidBlock, sizeof(Block_t), 1, blockFile);
+                }
+            }
+        }
 
         fwrite(&currentBlock, sizeof(Block_t), 1, blockFile);
     }

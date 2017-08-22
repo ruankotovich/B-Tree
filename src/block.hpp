@@ -7,6 +7,7 @@
 struct Block_t {
     BYTE content[BLOCK_SIZE];
     bool tryPutArticle(Article_t&);
+    bool hasSpace();
     Article_t* getArticle(unsigned int);
     Block_t();
 };
@@ -24,4 +25,8 @@ union Header_Interpretation_t {
 union Article_Interpretation_t {
     Article_t struct_article;
     BYTE bytes_article[sizeof(Article_t)];
+};
+
+namespace Block_Handler_T {
+    const Block_t invalidBlock;
 };
