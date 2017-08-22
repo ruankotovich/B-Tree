@@ -5,7 +5,7 @@
 #define R_EOC 2
 #define R_SON 3
 
-static inline char pairClass(char previous, char current)
+static inline char after_pairClass(char previous, char current)
 {
     switch (previous) {
     case '\"': {
@@ -33,7 +33,7 @@ static inline char pairClass(char previous, char current)
     return R_NOTHING;
 }
 
-static inline char after_pairClass(char previous, char current)
+static inline char pairClass(char previous, char current)
 {
 
     switch (previous) {
@@ -60,19 +60,15 @@ static inline void readColumn(FILE* file, char* buffer, char previous)
     char current = fgetc(file);
     int pointer = 0;
     char type;
-
     type = pairClass(previous, current);
-
     if (type != R_SON) {
         current = fgetc(file);
         do {
             previous = current;
             current = fgetc(file);
-
             if (type < R_SOR) {
                 buffer[pointer++] = previous;
             }
-
         } while ((type = after_pairClass(previous, current)) < R_EOC);
     } else {
         fscanf(file, "ULL\n");
@@ -80,7 +76,6 @@ static inline void readColumn(FILE* file, char* buffer, char previous)
         fscanf(file, "ULL;");
         pointer = 1;
     }
-
     buffer[pointer - 1] = '\0';
 }
 
