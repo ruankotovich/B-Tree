@@ -1,5 +1,15 @@
 #include "byteparser.hpp"
 
+unsigned char uc_fromByteArray(BYTE* bytearray, unsigned int offset)
+{
+    return bytearray[offset];
+}
+
+char c_fromByteArray(BYTE* bytearray, unsigned int offset)
+{
+    return bytearray[offset];
+}
+
 unsigned short int us_fromByteArray(BYTE* bytearray, unsigned int offset)
 {
     unsigned short number = 0;

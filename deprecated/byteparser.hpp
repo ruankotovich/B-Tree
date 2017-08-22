@@ -9,6 +9,9 @@ const size_t INT_SIZE = sizeof(int);
 const size_t LONG_SIZE = sizeof(long);
 const size_t BYTE_SIZE = sizeof(BYTE);
 
+unsigned char uc_fromByteArray(BYTE* bytearray, unsigned int);
+char c_fromByteArray(BYTE* bytearray, unsigned int);
+
 unsigned short int us_fromByteArray(BYTE*, unsigned int);
 short int s_fromByteArray(BYTE*, unsigned int);
 
@@ -20,7 +23,9 @@ long int l_fromByteArray(BYTE*, unsigned int);
 
 void byte_fromShort(short, unsigned int, BYTE*);
 void byte_fromUnsignedShort(unsigned short, unsigned int, BYTE*);
+
 void byte_fromInt(int, unsigned int, BYTE*);
 void byte_fromUnsignedInt(unsigned int, unsigned int, BYTE*);
+
 void byte_fromLong(long, unsigned int, BYTE*);
 void byte_fromUnsignedLong(unsigned long, unsigned int, BYTE*);

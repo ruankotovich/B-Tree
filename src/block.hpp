@@ -1,18 +1,27 @@
 #include "article.hpp"
-#include "byteparser.hpp"
-
+#include "typessize.hpp"
 #define BLOCK_SIZE 4096
-#define RECORD_COUNT_SIZE INT_SIZE
-#define RECORD_AREA_SIZE (BLOCK_SIZE - RECORD_COUNT_SIZE)
+#define RECORD_HEADER_SIZE (BYTE_SIZE << 1)
+#define RECORD_AREA_SIZE (BLOCK_SIZE - RECORD_HEADER_SIZE)
 
 struct Block_t {
-    BYTE block_header[RECORD_COUNT_SIZE];
-    BYTE record_content[RECORD_AREA_SIZE];
+    BYTE content[BLOCK_SIZE];
     bool tryPutArticle(Article_t&);
     Article_t* getArticle(unsigned int);
+    Block_t();
+};
+
+union Header_Interpretation_t {
+
+    struct Header {
+        unsigned char valid;
+        unsigned char count;
+    } struct_header;
+
+    BYTE bytes_header[RECORD_HEADER_SIZE];
 };
 
 union Article_Interpretation_t {
-    BYTE record_content[sizeof(Article_t)];
-    Article_t article;
+    Article_t struct_article;
+    BYTE bytes_article[sizeof(Article_t)];
 };
