@@ -1,3 +1,4 @@
+#pragma once
 #include "article.hpp"
 #include "typessize.hpp"
 #define BLOCK_SIZE 4096

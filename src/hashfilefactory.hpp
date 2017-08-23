@@ -10,8 +10,11 @@ private:
     FILE* blockFile;
     int lastId = 0;
     Article_t currentArticle;
+    int hashFunction(int k);
 
 public:
     HashFileFactory(FILE* toReadText, FILE* toWriteHash);
-    void createBinaryFileHash(); // poderia retornar boolean indicando que houve algum erro na leitura ou escrita.
+    void createBinaryFilePerfectHash(); // poderia retornar boolean indicando que houve algum erro na leitura ou escrita. NA1 PODERIA
+    bool getArticleFromHash(int id, Article_t *article);
+    
 };

@@ -1,6 +1,3 @@
-//#include "block.hpp"
-//#include "iohandler.hpp"
-
 #include "hashfilefactory.cpp"
 #include <cstdlib>
 #include <iostream>
@@ -8,7 +5,15 @@
 int main(int argc, char* argv[])
 {
     FILE* blockFile = fopen("./test/pattern.block", "wb+");
-    HashFileFactory HashFileFactory(fopen("./files/pattern.csv", "r"), blockFile);
+    HashFileFactory hashFileFactory(fopen("./files/pattern.csv", "r"), blockFile);
     
-    HashFileFactory.createBinaryFileHash();
+    //hashFileFactory.createBinaryFilePerfectHash();
+
+    Article_t article;
+    if(hashFileFactory.getArticleFromHash(3, &article)) {
+        std::cout << article.toString();
+    }
+    else {
+        std::cout << "OLOSKO";
+    }
 }
