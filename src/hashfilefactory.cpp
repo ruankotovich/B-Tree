@@ -1,0 +1,30 @@
+#include "hashfilefactory.hpp"
+
+HashFileFactory::HashFileFactory(FILE* toReadText, FILE* toWriteHash) : handler(toReadText) {
+    blockFile = toWriteHash;
+    lastId = 0;
+}
+
+void HashFileFactory::createBinaryFileHash() {
+    while (handler.hasNext()) {
+        Block_t currentBlock;
+
+        while (currentBlock.hasSpace() && handler.hasNext()) {
+            handler >> currentArticle;
+            handler.parseNext();
+
+            currentBlock.tryPutArticle(currentArticle);
+
+            int qntInvalidToWrite = currentArticle.id - lastId - 1;
+            lastId = currentArticle.id;
+
+            if (qntInvalidToWrite > 0) {
+                for (; qntInvalidToWrite; qntInvalidToWrite--) {
+                    fwrite(&Block_Handler_T::invalidBlock, sizeof(Block_t), 1, blockFile);
+                }
+            }
+        }
+
+        fwrite(&currentBlock, sizeof(Block_t), 1, blockFile);
+    }
+}
