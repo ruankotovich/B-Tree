@@ -1,36 +1,37 @@
-#include "block.hpp"
-#include "iohandler.hpp"
-
+#include "hashfilefactory.hpp"
 #include <cstdlib>
 #include <iostream>
 
-
 int main(int argc, char* argv[])
 {
-    IOHandler handler(fopen("./files/pattern.csv", "r"));
-    FILE* blockFile = fopen("./test/pattern.block", "wb+");
-    int lastId = 0;
-    Article_t currentArticle;
+    HashFileFactory hashFileFactory;
+    
+    hashFileFactory.createBinaryFilePerfectHash(fopen("./files/pattern.csv", "r"),
+                                                fopen("./test/pattern.block", "wb+"));
 
-    while (handler.hasNext()) {
-        Block_t currentBlock;
+    FILE* blockFile = fopen("./test/pattern.block", "rb+");
+    if (blockFile != NULL) {
+        fseek(blockFile, sizeof(Block_t), SEEK_END);
+        int numberOfArticles = ftell(blockFile) / sizeof(Block_t)- 1;
+        rewind(blockFile);
 
-        while (currentBlock.hasSpace() && handler.hasNext()) {
-            handler >> currentArticle;
-            handler.parseNext();
+        while (true) {
+            int id;
+            std::cout << "Insira o id: ";
+            std::cin >> id;
+            std::cout << "\n";
 
-            currentBlock.tryPutArticle(currentArticle);
+            Article_t article;
 
-            int qntInvalidToWrite = currentArticle.id - lastId - 1;
-            lastId = currentArticle.id;
-
-            if (qntInvalidToWrite > 0) {
-                for (; qntInvalidToWrite; qntInvalidToWrite--) {
-                    fwrite(&Block_Handler_T::invalidBlock, sizeof(Block_t), 1, blockFile);
-                }
+            if (hashFileFactory.getArticleFromHash(id, &article, blockFile)) {
+                std::cout << article.toString();
+                std::cout << "\n\n> Number of records: " << numberOfArticles << "\n"
+                          << "> Number of blocks read: 1\n";
+            } else {
+                std::cout << "OLOSKO";
             }
-        }
 
-        fwrite(&currentBlock, sizeof(Block_t), 1, blockFile);
+            std::cout << "\n\n";
+        }
     }
 }

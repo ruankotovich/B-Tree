@@ -1,4 +1,5 @@
 #include "article.hpp"
+#include <sstream>
 
 Article_t::Article_t() {}
 Article_t::Article_t(int id, char title[FIELD_TITLE_MAX_SIZE], int year, char authors[FIELD_AUTHORS_MAX_SIZE], int citations, char date[FIELD_DATE_MAX_SIZE], char snippet[FIELD_SNIPPET_MAX_SIZE])
@@ -12,8 +13,7 @@ Article_t::Article_t(int id, char title[FIELD_TITLE_MAX_SIZE], int year, char au
     std::memcpy(this->snippet, snippet, FIELD_SNIPPET_MAX_SIZE);
 }
 
-std::string Article_t::toString()
-{
+nlohmann::json Article_t::toJson() {
     nlohmann::json jsonObject;
     jsonObject["id"] = id;
     jsonObject["title"] = title;
@@ -22,5 +22,24 @@ std::string Article_t::toString()
     jsonObject["citations"] = citations;
     jsonObject["date"] = date;
     jsonObject["snippet"] = snippet;
-    return jsonObject.dump();
+
+    return jsonObject;
+}
+
+std::string Article_t::toJsonString()
+{
+    return toJson().dump();
+}
+
+std::string Article_t::toString() {
+    std::stringstream ss;
+    ss << "> Id: " << id << "\n\n";
+    ss << "> Title: \"" << title << "\"" << "\n\n";
+    ss << "> Year: " << year << "\n\n";
+    ss << "> Authors: \"" << authors << "\"" << "\n\n";
+    ss << "> Citations: \"" << citations << "\"" << "\n\n";
+    ss << "> Date: " << date << "\n\n";
+    ss << "> Snippet: \"" << snippet << "\"";
+
+    return ss.str();
 }
