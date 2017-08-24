@@ -21,9 +21,12 @@ struct Article_t {
     int citations;
     char date[FIELD_DATE_MAX_SIZE];
     char snippet[FIELD_SNIPPET_MAX_SIZE];
+    nlohmann::json toJson();
+    std::string toJsonString();
     std::string toString();
     Article_t(int, char[FIELD_TITLE_MAX_SIZE], int, char[FIELD_AUTHORS_MAX_SIZE], int, char[FIELD_DATE_MAX_SIZE], char[FIELD_SNIPPET_MAX_SIZE]);
     Article_t();
+
 };
 
 union RawArticle_t {

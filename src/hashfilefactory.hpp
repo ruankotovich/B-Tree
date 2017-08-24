@@ -6,12 +6,14 @@
 
 class HashFileFactory {
 private:
-    IOHandler handler;
-    FILE* blockFile;
+    IOHandler *handler;
+    
     int lastId = 0;
     Article_t currentArticle;
 
 public:
-    HashFileFactory(FILE* toReadText, FILE* toWriteHash);
-    void createBinaryFileHash(); // poderia retornar boolean indicando que houve algum erro na leitura ou escrita.
+    HashFileFactory();
+    void createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite); // poderia retornar boolean indicando que houve algum erro na leitura ou escrita. NA1 PODERIA
+    bool getArticleFromHash(int id, Article_t *article, FILE *toRead);
+    
 };
