@@ -10,6 +10,7 @@ private:
     
     int lastId = 0;
     Article_t currentArticle;
+    int hashFunction(int k);
 
 public:
     HashFileFactory();
