@@ -7,7 +7,9 @@
 #define FIELD_AUTHORS_MAX_SIZE 1024 //!< Max size of the article authors' names
 #define FIELD_DATE_MAX_SIZE 20 //!< Max size of the article date
 #define FIELD_SNIPPET_MAX_SIZE 1024 //!< Max size of the article snippet
-
+/**
+* A struct to embbed and abstract an article and its fields
+*/
 struct Article_t {
   int id;
   char title[FIELD_TITLE_MAX_SIZE];

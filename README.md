@@ -15,7 +15,7 @@
 # Rascunho
 - Decidimos classificar cada par de caracteres na leitura para fazer o parsing dos registros, salvando-os num buffer para tratar os caracteres excedentes.
 - Decidimos usar hash perfeito, nos custou memória.
-  - Supomos que a inserção seria ordenada pelo ID para otimizar a inserção no hash de forma que torne mais rápida a invalidação de blocos vazios.
+  - Optamos por utilizar máscaras de validação ao invés de bitmap de pertinência, uma vez que é custoso para muitos elementos (visto que é um hash perfeito)
 
 - Árvore de Dependências
 ```
@@ -54,23 +54,3 @@ Projeto
 │     
 └───▶ seek2
 ```
-
-
-<!-- ```
-Projeto
-│   README.md
-│   file001.txt    
-│
-├───folder1
-│   │   file011.txt
-│   │   file012.txt
-│   │
-│   └───subfolder1
-│       │   file111.txt
-│       │   file112.txt
-│       │   ...
-│   
-└───folder2
-    │   file021.txt
-    │   file022.txt
-``` -->
