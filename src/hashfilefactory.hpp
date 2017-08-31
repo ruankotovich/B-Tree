@@ -2,6 +2,7 @@
 #include "block.hpp"
 #include "iohandler.hpp"
 #include <cstdlib>
+#include <cstdio>
 #include <iostream>
 
 class HashFileFactory {

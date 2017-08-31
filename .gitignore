@@ -1,5 +1,8 @@
 /files
 /test
+/xml
+/html
+/latex
 **vscode**
 *.block
 findrec

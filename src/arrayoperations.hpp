@@ -1,7 +1,7 @@
 #include <algorithm>
 
 template <typename T, typename L>
-/*
+/**
 * Perform a binary search on the array
 * @In : receive a array, a length and a value
 * @Out : a pair, the first paramether regards if the search has found the value, false if it hasn't been found; the second paramether regards the index in the array

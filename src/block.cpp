@@ -1,5 +1,11 @@
 #include "block.hpp"
 
+/**
+* Perform a binary search on the array
+* @In : receive a array, a length and a value
+* @Out : a pair, the first paramether regards if the search has found the value, false if it hasn't been found; the second paramether regards the index in the array
+*/
+
 bool Block_t::hasSpace()
 {
     unsigned char position = ((Header_Interpretation_t*)(&this->content[0]))->struct_header.count;

@@ -1,5 +1,4 @@
 #include "hashfilefactory.hpp"
-#include <cstdio>
 
 HashFileFactory::HashFileFactory() {
     lastId = -1;
