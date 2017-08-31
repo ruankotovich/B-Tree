@@ -36,7 +36,7 @@ int HashFileFactory::hashFunction(int k) {
 
 bool HashFileFactory::getArticleFromHash(int id, Article_t *article, FILE *toRead) {
     Block_t block;
-    
+
     fseek(toRead, sizeof(Block_t) * hashFunction(id), SEEK_SET);
     fread(&block, sizeof(Block_t), 1, toRead);
 
