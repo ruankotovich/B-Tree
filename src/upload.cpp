@@ -4,8 +4,8 @@
 
 int main(int argc, char* argv[])
 {
-    HashFileFactory hashFileFactory;
+  HashFileFactory hashFileFactory;
 
-    hashFileFactory.createBinaryFilePerfectHash(fopen(argv[1], "r"),
-        fopen("./data.block", "wb+"));
+  hashFileFactory.createBinaryFilePerfectHash(fopen(argv[1], "r"),
+  fopen("./data.block", "wb+"));
 }

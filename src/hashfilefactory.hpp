@@ -5,13 +5,12 @@
 #include <cstdio>
 #include <iostream>
 
+/**
+* A class to recover raw information in the hashed file
+*/
 class HashFileFactory {
 private:
-  IOHandler *handler;
-  int lastId = 0;
-  Article_t currentArticle;
-  int hashFunction(int k);
-
+  int hashSize;
 public:
   HashFileFactory();
   void createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite); // poderia retornar boolean indicando que houve algum erro na leitura ou escrita. NA1 PODERIA

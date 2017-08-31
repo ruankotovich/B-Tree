@@ -1,6 +1,6 @@
 ### C Arguments
 CC=g++
-CFLAGS=-std=c++11 -Wall -O2
+CFLAGS=-std=c++11 -O2
 
 ### Compiler Arguments
 INCLUDE_PATH=src

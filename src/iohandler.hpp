@@ -9,6 +9,9 @@
 
 #define IOHANDLER_READ_BUFFER_SIZE 4096 //!< IOHandler reading buffer size (block size)
 
+/**
+* A class to read and handle the CSV file, buffering and handleing the fields
+*/
 class IOHandler {
     FILE* file;
     char state;
@@ -26,4 +29,5 @@ public:
     bool hasNext();
     void parseNext();
     void operator>>(Article_t&);
+    int getBiggestId();
 };

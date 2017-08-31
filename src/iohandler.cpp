@@ -1,9 +1,9 @@
 #include "iohandler.hpp"
 
-#define R_NOTHING 0
-#define R_SOR 1
-#define R_EOC 2
-#define R_SON 3
+#define R_NOTHING 0 //!< The two characters are nothing in special
+#define R_SOR 1 //!< The two characters means START OF RECORD
+#define R_EOC 2 //!< The two characters means END OF RECORD
+#define R_SON 3 //!< The two characters means START OF NULL
 
 /**
 * Second degree verifyer, classify a pair of characters.
@@ -74,7 +74,7 @@ static inline char pairClass(char previous, char current)
 }
 
 /**
-* Read a column receibing the file, the buffer and the previous char
+* Read a column receiving the file, the buffer and the previous char
 */
 static inline void readColumn(FILE* file, char* buffer, char previous)
 {
@@ -101,7 +101,65 @@ static inline void readColumn(FILE* file, char* buffer, char previous)
 }
 
 /**
+* Read a column receiving the file and the previous char, ignoring the buffer
+*/
+static inline void readNIgnoreColumn(FILE* file, char previous)
+{
+  char current = fgetc(file);
+  char type;
+  type = pairClass(previous, current);
+  if (type != R_SON) {
+    current = fgetc(file);
+    do {
+      previous = current;
+      current = fgetc(file);
+    } while ((type = after_pairClass(previous, current)) < R_EOC);
+  } else {
+    fscanf(file, "ULL\n");
+    fscanf(file, "ULL\r\n");
+    fscanf(file, "ULL;");
+  }
+}
+
+/**
 * Parse the next record contained in the buffer
+*/
+int IOHandler::getBiggestId(){
+
+  int idBuffer;
+  int bigger = 0;
+  unsigned long backupPosition = ftell(this->file);
+  fseek(this->file, 0, SEEK_SET);
+  while (fscanf(this->file, "\"%d\";", &idBuffer) == 1) {
+    // READ TITLE
+    readNIgnoreColumn(this->file, ';');
+    // READ YEAR
+    fscanf(this->file, "\"%*d\";");
+
+    // READ AUTHOR
+    readNIgnoreColumn(this->file,  ';');
+
+    // READ CITATION
+    fscanf(this->file, "\"%*d\";");
+
+    // READ DATE
+    readNIgnoreColumn(this->file, ';');
+
+    // READ SNIPPET
+    readNIgnoreColumn(this->file, ';');
+
+    if(idBuffer > bigger){
+      bigger = idBuffer;
+    }
+  }
+
+  fseek(this->file, backupPosition, SEEK_SET);
+
+  return bigger;
+}
+
+/**
+* Prepare the next parsing element
 */
 void IOHandler::parseNext()
 {
