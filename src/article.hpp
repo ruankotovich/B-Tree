@@ -3,10 +3,10 @@
 #include <cstring>
 #include <sstream>
 
-#define FIELD_TITLE_MAX_SIZE 300
-#define FIELD_AUTHORS_MAX_SIZE 1024
-#define FIELD_DATE_MAX_SIZE 20
-#define FIELD_SNIPPET_MAX_SIZE 1024
+#define FIELD_TITLE_MAX_SIZE 300 //!< Max size of the article title
+#define FIELD_AUTHORS_MAX_SIZE 1024 //!< Max size of the article authors' names
+#define FIELD_DATE_MAX_SIZE 20 //!< Max size of the article date
+#define FIELD_SNIPPET_MAX_SIZE 1024 //!< Max size of the article snippet
 
 struct Article_t {
   int id;

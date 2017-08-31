@@ -1,6 +1,13 @@
 #include "article.hpp"
 
+/**
+* Default constructor of an Article
+*/
 Article_t::Article_t() {}
+
+/**
+* Constructor including the fields
+*/
 Article_t::Article_t(int id, char title[FIELD_TITLE_MAX_SIZE], int year, char authors[FIELD_AUTHORS_MAX_SIZE], int citations, char date[FIELD_DATE_MAX_SIZE], char snippet[FIELD_SNIPPET_MAX_SIZE])
 : id(id)
 , year(year)
@@ -12,6 +19,9 @@ Article_t::Article_t(int id, char title[FIELD_TITLE_MAX_SIZE], int year, char au
   std::memcpy(this->snippet, snippet, FIELD_SNIPPET_MAX_SIZE);
 }
 
+/**
+* Transform the content of this block into a string
+*/
 std::string Article_t::toString() {
   std::stringstream ss;
   ss << "> Id: " << id << "\n\n";

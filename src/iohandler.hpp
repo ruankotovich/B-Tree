@@ -3,11 +3,11 @@
 #include <cstdio>
 #include <cstdlib>
 
-#define IOHANDLER_READY 0x0
-#define IOHANDLER_SLEEPING 0x1
-#define IOHANDLER_END 0x2
+#define IOHANDLER_READY 0x0 //!< READY state of the buffer reading
+#define IOHANDLER_SLEEPING 0x1 //!< SLEEPING state of the buffer reading
+#define IOHANDLER_END 0x2 //!< END state of the buffer reading
 
-#define IOHANDLER_READ_BUFFER_SIZE 4096
+#define IOHANDLER_READ_BUFFER_SIZE 4096 //!< IOHandler reading buffer size (block size)
 
 class IOHandler {
     FILE* file;

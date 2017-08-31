@@ -5,6 +5,15 @@
 #define R_EOC 2
 #define R_SON 3
 
+/**
+* Second degree verifyer, classify a pair of characters.
+*
+* Classes :
+* R_NOTHING as 0 \
+* R_SOR as 1 \
+* R_EOC as 2 \
+* R_SON as 3 \
+*/
 static inline char after_pairClass(char previous, char current)
 {
   switch (previous) {
@@ -33,6 +42,15 @@ static inline char after_pairClass(char previous, char current)
   return R_NOTHING;
 }
 
+/**
+* First degree verifyer, classify a pair of characters.
+*
+* Classes :
+* R_NOTHING as 0 \
+* R_SOR as 1 \
+* R_EOC as 2 \
+* R_SON as 3 \
+*/
 static inline char pairClass(char previous, char current)
 {
 
@@ -55,30 +73,36 @@ static inline char pairClass(char previous, char current)
   return R_NOTHING;
 }
 
+/**
+* Read a column receibing the file, the buffer and the previous char
+*/
 static inline void readColumn(FILE* file, char* buffer, char previous)
-{ //"1";"abacate";NULL;;"2"
-char current = fgetc(file);
-int pointer = 0;
-char type;
-type = pairClass(previous, current);
-if (type != R_SON) {
-  current = fgetc(file);
-  do {
-    previous = current;
+{
+  char current = fgetc(file);
+  int pointer = 0;
+  char type;
+  type = pairClass(previous, current);
+  if (type != R_SON) {
     current = fgetc(file);
-    if (type < R_SOR) {
-      buffer[pointer++] = previous;
-    }
-  } while ((type = after_pairClass(previous, current)) < R_EOC);
-} else {
-  fscanf(file, "ULL\n");
-  fscanf(file, "ULL\r\n");
-  fscanf(file, "ULL;");
-  pointer = 1;
-}
-buffer[pointer - 1] = '\0';
+    do {
+      previous = current;
+      current = fgetc(file);
+      if (type < R_SOR) {
+        buffer[pointer++] = previous;
+      }
+    } while ((type = after_pairClass(previous, current)) < R_EOC);
+  } else {
+    fscanf(file, "ULL\n");
+    fscanf(file, "ULL\r\n");
+    fscanf(file, "ULL;");
+    pointer = 1;
+  }
+  buffer[pointer - 1] = '\0';
 }
 
+/**
+* Parse the next record contained in the buffer
+*/
 void IOHandler::parseNext()
 {
   if (fscanf(this->file, "\"%d\";", &this->idBuffer) == 1) {
@@ -111,6 +135,9 @@ void IOHandler::parseNext()
   }
 }
 
+/**
+* Copy the content of the buffer into an article
+*/
 void IOHandler::operator>>(Article_t& article)
 {
   article.id = idBuffer;
@@ -122,11 +149,17 @@ void IOHandler::operator>>(Article_t& article)
   std::memcpy(article.snippet, this->snippetBuffer, FIELD_SNIPPET_MAX_SIZE);
 }
 
+/**
+* Verify if there is next record in the buffer
+*/
 bool IOHandler::hasNext()
 {
   return this->state == IOHANDLER_READY;
 }
 
+/**
+* Default IOHandler constructor, receiving a file to read
+*/
 IOHandler::IOHandler(FILE* file)
 {
   this->file = file;

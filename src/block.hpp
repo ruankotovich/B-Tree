@@ -1,9 +1,10 @@
 #pragma once
 #include "article.hpp"
 #include "typessize.hpp"
-#define BLOCK_SIZE 4096
-#define RECORD_HEADER_SIZE (BYTE_SIZE << 1)
-#define RECORD_AREA_SIZE (BLOCK_SIZE - RECORD_HEADER_SIZE)
+
+#define BLOCK_SIZE 4096 //!< Preset block size
+#define RECORD_HEADER_SIZE (BYTE_SIZE << 1) //!< Preset record header size
+#define RECORD_AREA_SIZE (BLOCK_SIZE - RECORD_HEADER_SIZE) //!< Preset record area size, containing the data
 
 struct Block_t {
     BYTE content[BLOCK_SIZE];

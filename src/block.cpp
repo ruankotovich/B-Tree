@@ -1,9 +1,7 @@
 #include "block.hpp"
 
 /**
-* Perform a binary search on the array
-* @In : receive a array, a length and a value
-* @Out : a pair, the first paramether regards if the search has found the value, false if it hasn't been found; the second paramether regards the index in the array
+* Verify if there is space in the block
 */
 
 bool Block_t::hasSpace()
@@ -14,6 +12,10 @@ bool Block_t::hasSpace()
     return (realPosition < BLOCK_SIZE - sizeof(Article_t));
 }
 
+
+/**
+* Try to put the article into the block, return true if it has been successfull
+*/
 bool Block_t::tryPutArticle(Article_t& article)
 {
     Header_Interpretation_t* headerOnBytes = (Header_Interpretation_t*)(&this->content[0]);
@@ -35,11 +37,19 @@ bool Block_t::tryPutArticle(Article_t& article)
     return false;
 }
 
+/**
+* Get an article in the relative position in the block
+*/
+
 Article_t* Block_t::getArticle(unsigned int position)
 {
     Article_Interpretation_t* articleOnBytes = (Article_Interpretation_t*)(&this->content[(sizeof(Article_t) * position) + RECORD_HEADER_SIZE]);
     return (&articleOnBytes->struct_article);
 }
+
+/**
+* Default block constructor
+*/
 
 Block_t::Block_t()
 {
