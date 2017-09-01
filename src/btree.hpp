@@ -25,7 +25,7 @@ struct Node {
     Node(int order);
     bool isLeaf();
     bool hasRoom();
-    int insert(int key); //[TROCAR]
+    unsigned short insert(int key); //[TROCAR]
 };
 
 union NodeReinterpret {
@@ -39,7 +39,7 @@ private:
     em cada nó (exceto na raíz). */
 
     Node *root;
-    std::pair<bool, std::pair<int, int>> insertRecursive(int key, Node *node, int offset, FILE *indexFile);
+    std::pair<bool, std::pair<int, unsigned short>> insertRecursive(int key, Node *node, int offset, FILE *indexFile);
 public:
     void insert(int key, FILE *indexFile);
     // bool getArticle()

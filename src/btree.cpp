@@ -7,10 +7,10 @@ Node::Node(int order)
 
     int i;
 
-    for (i = 0; i < order; i++) {
+    /*for (i = 0; i < order; i++) {
         //std::cout << i << std::endl;
         blockPointers[i] = -1; // -1 não faz sentido como posição do arquivo, então é como um "Nullptr"
-    }
+    }*/
 }
 
 bool Node::isLeaf()
@@ -26,10 +26,10 @@ bool Node::hasRoom()
 /**
 * Insert a key in a node and returns the index where the insertion was made.    
 */
-int Node::insert(int key)
+unsigned short Node::insert(int key)
 { // [TROCAR]
 
-    int i;
+    unsigned short i;
 
     for (i = count; i >= 1; i--) {
         if (key > keys[i - 1]) {
@@ -78,16 +78,18 @@ char inline relativeKeyPosition(int key, int leftMiddle, int rightMiddle)
     return RELATIVE_MIDDLE;
 }
 
-int inline writeNewNode(Node *node,FILE *indexFile) {
+int inline writeNewNode(Node* node, FILE* indexFile)
+{
     fseek(indexFile, 0, SEEK_END);
-    
+
     fwrite(node, sizeof(NodeReinterpret), 1, indexFile);
     return (ftell(indexFile) / sizeof(Block_t)) - 1;
 }
 
-std::pair<bool, std::pair<int, int>> BTree::insertRecursive(int key, Node* node, int offset, FILE* indexFile)
+std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, Node* node, int offset, FILE* indexFile)
 {
     if (node->isLeaf()) {
+
         if (node->hasRoom()) {
             node->insert(key);
             writeBackNode(node, offset, indexFile);
@@ -95,74 +97,153 @@ std::pair<bool, std::pair<int, int>> BTree::insertRecursive(int key, Node* node,
             return { false, { 0, 0 } };
         }
 
-        Node *split = new Node(MAX_KEYS);
+        Node* splitLeaf = new Node(MAX_KEYS);
         int promoted;
 
-        // elege o promoted e manipula os vetores resultantes da operação do split.
+        // elege o promoted e manipula os vetores resultantes da operação do splitLeaf.
         int leftMiddleKey = node->keys[LEFT_MIDDLE_KEY];
         int rightMiddleKey = node->keys[RIGHT_MIDDLE_KEY];
 
+        splitLeaf->count = node->count = HALF_MAX_KEYS;
+
         switch (relativeKeyPosition(key, leftMiddleKey, rightMiddleKey)) {
-            case RELATIVE_LEFT:
-                promoted = leftMiddleKey;
-                split->count = node->count = HALF_MAX_KEYS;
-                --node->count;
-                
-                node->insert(key);
+        case RELATIVE_LEFT: {
+            promoted = leftMiddleKey;
+            --node->count;
 
-                for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
-                    split->keys[j] = node->keys[i];
-                } // não esquecer de manipular os blockPointes para nós não-folha
-            break;
+            node->insert(key);
 
-            case RELATIVE_RIGHT:
-                promoted = rightMiddleKey;
+            for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
+                splitLeaf->keys[j] = node->keys[i];
+            }
+        } // não esquecer de manipular os blockPointes para nós não-folha
+        break;
 
-                split->count = node->count = HALF_MAX_KEYS;
-                --split->count;
+        case RELATIVE_RIGHT: {
+            promoted = rightMiddleKey;
+            --splitLeaf->count;
 
-                for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
-                    split->keys[j] = node->keys[i];
-                } // não esquecer de manipular os blockPointes para nós não-folha
-            break;
+            for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
+                splitLeaf->keys[j] = node->keys[i];
+            } // não esquecer de manipular os blockPointes para nós não-folha
 
-            case RELATIVE_MIDDLE:
-                promoted = key;
-                split->count = node->count = HALF_MAX_KEYS;
+            splitLeaf->insert(key);
+        } break;
 
-                for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
-                    split->keys[j] = node->keys[i];
-                } // não esquecer de manipular os blockPointes para nós não-folha
+        case RELATIVE_MIDDLE: {
+            promoted = key;
 
-            break;
+            for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
+                splitLeaf->keys[j] = node->keys[i];
+            }
+        } // não esquecer de manipular os blockPointes para nós não-folha
+
+        break;
         }
 
-        int offset = writeNewNode(split, indexFile);
-        delete split;
+        writeBackNode(node, offset, indexFile);
+        int offset = writeNewNode(splitLeaf, indexFile);
 
-        return {true, {promoted, offset}};
+        delete splitLeaf; // deleta da memória principal pois já foi salvo no disco
+
+        return { true, { promoted, offset } };
     }
 
     auto result = binarySearch(node->keys, node->count, key); // [TROCAR]
 
-    unsigned short childNodeOffset = ((key < node->keys[result.second])? node->blockPointers[result.second] : node->blockPointers[result.second + 1]); 
+    unsigned short childNodeOffset = ((key < node->keys[result.second]) ? node->blockPointers[result.second] : node->blockPointers[result.second + 1]);
 
-    Node *retrieveNode = new Node(MAX_KEYS);
+    Node* retrieveNode = new Node(MAX_KEYS);
     fread(retrieveNode, sizeof(Block_t) * childNodeOffset, 1, indexFile);
 
     auto resultRecursion = insertRecursive(key, retrieveNode, childNodeOffset, indexFile);
+    delete retrieveNode;
 
     // WARNING: FALTA RESOLVER A QUESTÃO DE DELEÇÃO DOS PONTEIROS PARA NODE NAS CHAMADAS RECURSIVAS
 
-    if (resultRecursion.first) {
+    if (resultRecursion.first) { // caso em que veio um valor promovido e um blockPointer
         //caso 1 - tem espaço para inserir o promovido
+        if (node->hasRoom()) {
+            //o + 1 é para não realizar essa soma em toda iteração do for logo abaixo
+            unsigned short rightIndexInserted = node->insert(resultRecursion.second.first) + 1;
 
-        // caso 2 - não tem espaço para inserir o promovido -> fazer o split com remanejamento de chaves
+            for (unsigned short i = node->countPointers; i > rightIndexInserted; --i) {
+                node->blockPointers[i] = node->blockPointers[i - 1];
+            }
 
-        // return {true, noia1, noia2};
-    } 
+            node->blockPointers[rightIndexInserted] = resultRecursion.second.second;
 
-    delete retrieveNode;
+            writeBackNode(node, offset, indexFile);
+        } else { // caso 2 - não tem espaço para inserir o promovido -> fazer o split com remanejamento de chaves
+            Node* split = new Node(MAX_KEYS);
+            int promoted;
+
+            // elege o promoted e manipula os vetores resultantes da operação do split.
+            int leftMiddleKey = node->keys[LEFT_MIDDLE_KEY];
+            int rightMiddleKey = node->keys[RIGHT_MIDDLE_KEY];
+
+            split->count = node->count = HALF_MAX_KEYS; // remoção lógica exatamente na metade
+
+            //como está cheio, vai metade dos elementos para cada bloco, contnado com o split.
+            // se vai metade, haverá metade + 1 ponteiros para bloco preenchidos.
+            split->countPointers = node->countPointers = HALF_MAX_KEYS + 1;
+
+            switch (relativeKeyPosition(resultRecursion.second.first, leftMiddleKey, rightMiddleKey)) {
+            case RELATIVE_LEFT: {
+                promoted = leftMiddleKey;
+
+                --node->count;
+
+                // índice do ponteiro mais à direita do vetor blockPointers
+                unsigned short greaterNodeBlockPointer = node->blockPointers[node->countPointers - 1]; // a subtração tem a ver com índice
+
+                //índice em que foi inserido o promovido no nó já existente
+                unsigned short rightIndexInserted = node->insert(resultRecursion.second.first) + 1;
+
+                //remanejar os blockPoints
+                for (unsigned short i = node->countPointers - 1; i > rightIndexInserted; --i) {
+                    node->blockPointers[i] = node->blockPointers[i - 1];
+                }
+
+                node->blockPointers[rightIndexInserted] = resultRecursion.second.second;
+
+                for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
+                    split->keys[j] = node->keys[i];
+                    split->blockPointers[j + 1] = node->blockPointers[i + 1];
+                } // não esquecer de manipular os blockPointes para nós não-folha
+
+                split->blockPointers[0] = greaterNodeBlockPointer;
+            } break;
+
+            case RELATIVE_RIGHT: {
+                promoted = rightMiddleKey;
+                --split->count;
+
+                split->insert(resultRecursion.second.first);
+
+                for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
+                    split->keys[j] = node->keys[i];
+                } // não esquecer de manipular os blockPointes para nós não-folha
+            } break;
+
+            case RELATIVE_MIDDLE: {
+                promoted = resultRecursion.second.first;
+
+                for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
+                    split->keys[j] = node->keys[i];
+                    split->blockPointers[j + 1] = node->blockPointers[i + 1];
+                } // não esquecer de manipular os blockPointes para nós não-folha
+                split->blockPointers[0] = resultRecursion.second.second;
+            } break;
+            }
+
+            writeBackNode(node, offset, indexFile);
+            int offset = writeNewNode(split, indexFile);
+            delete split; // deleta da memória principal pois já foi salvo no disco
+
+            return { true, { promoted, offset } };
+        }
+    }
 
     return { false, { 0, 0 } };
 }
