@@ -99,13 +99,31 @@ std::pair<bool, std::pair<int, int>> BTree::insertRecursive(int key, Node* node,
         int promoted;
 
         // elege o promoted e manipula os vetores resultantes da operação do split.
-        switch (relativeKeyPosition(key, node->keys[LEFT_MIDDLE_KEY], node->keys[RIGHT_MIDDLE_KEY])) {
+        int leftMiddleKey = node->keys[LEFT_MIDDLE_KEY];
+        int rightMiddleKey = node->keys[RIGHT_MIDDLE_KEY];
+        
+        switch (relativeKeyPosition(key, leftMiddleKey, rightMiddleKey)) {
             case RELATIVE_LEFT:
+                promoted = leftMiddleKey;
+                split->count = node->count = HALF_MAX_KEYS;
+                --node->count;
                 
+                node->insert(key);
+
+                for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
+                    split->keys[j] = node->keys[i];
+                } // não esquecer de manipular os blockPointes para nós não-folha
             break;
 
             case RELATIVE_RIGHT:
+                promoted = rightMiddleKey;
 
+                split->count = node->count = HALF_MAX_KEYS;
+                --split->count;
+
+                for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
+                    split->keys[j] = node->keys[i];
+                } // não esquecer de manipular os blockPointes para nós não-folha
             break;
 
             case RELATIVE_MIDDLE:
@@ -114,7 +132,7 @@ std::pair<bool, std::pair<int, int>> BTree::insertRecursive(int key, Node* node,
 
                 for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
                     split->keys[j] = node->keys[i];
-                }
+                } // não esquecer de manipular os blockPointes para nós não-folha
 
             break;
         }
