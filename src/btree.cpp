@@ -101,7 +101,7 @@ std::pair<bool, std::pair<int, int>> BTree::insertRecursive(int key, Node* node,
         // elege o promoted e manipula os vetores resultantes da operação do split.
         int leftMiddleKey = node->keys[LEFT_MIDDLE_KEY];
         int rightMiddleKey = node->keys[RIGHT_MIDDLE_KEY];
-        
+
         switch (relativeKeyPosition(key, leftMiddleKey, rightMiddleKey)) {
             case RELATIVE_LEFT:
                 promoted = leftMiddleKey;
@@ -138,9 +138,33 @@ std::pair<bool, std::pair<int, int>> BTree::insertRecursive(int key, Node* node,
         }
 
         int offset = writeNewNode(split, indexFile);
+        delete split;
 
         return {true, {promoted, offset}};
     }
+
+    auto result = binarySearch(node->keys, node->count, key); // [TROCAR]
+
+    unsigned short childNodeOffset = ((key < node->keys[result.second])? node->blockPointers[result.second] : node->blockPointers[result.second + 1]); 
+
+    Node *retrieveNode = new Node(MAX_KEYS);
+    fread(retrieveNode, sizeof(Block_t) * childNodeOffset, 1, indexFile);
+
+    auto resultRecursion = insertRecursive(key, retrieveNode, childNodeOffset, indexFile);
+
+    // WARNING: FALTA RESOLVER A QUESTÃO DE DELEÇÃO DOS PONTEIROS PARA NODE NAS CHAMADAS RECURSIVAS
+
+    if (resultRecursion.first) {
+        //caso 1 - tem espaço para inserir o promovido
+
+        // caso 2 - não tem espaço para inserir o promovido -> fazer o split com remanejamento de chaves
+
+        // return {true, noia1, noia2};
+    } 
+
+    delete retrieveNode;
+
+    return { false, { 0, 0 } };
 }
 
 void BTree::insert(int key, FILE* indexFile)

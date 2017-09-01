@@ -1,12 +1,12 @@
 #include <algorithm>
 
-template <typename T, typename L>
+template <typename T, typename L, typename K>
 /**
 * Perform a binary search on the array
 * @In : receive na array, a length and a value
 * @Out : a pair, the first paramether regards if the search has found the value, false if it hasn't been found; the second paramether regards the index in the array
 */
-static inline std::pair<bool, int> binarySearch(T* array, L length, T value)
+static inline std::pair<bool, int> binarySearch(T* array, L length, K value)
 {
   L _left = 0, _right = length - 1;
   L _middle;

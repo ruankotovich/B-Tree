@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include "block.hpp"
+#include "arrayoperations.hpp"
 #define RELATIVE_LEFT -1
 #define RELATIVE_MIDDLE 0
 #define RELATIVE_RIGHT 1
