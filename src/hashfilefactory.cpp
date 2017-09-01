@@ -1,52 +1,41 @@
 #include "hashfilefactory.hpp"
-#include <cstdio>
-
-HashFileFactory::HashFileFactory() {
-    lastId = -1;
-}
-
+/**
+* Create the hashed file using the file on the first paramether to read the CSV format file and the file on the second paramether to write the binary file
+*/
 void HashFileFactory::createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite) {
-    IOHandler handler(toRead);
-    while (handler.hasNext()) {
-        Block_t currentBlock;
+  IOHandler handler(toRead);
+  this->hashSize = handler.getBiggestId();
 
-        while (currentBlock.hasSpace() && handler.hasNext()) {
-            handler >> currentArticle;
-            handler.parseNext();
+  Article_t currentArticle;
 
-            currentBlock.tryPutArticle(currentArticle);
+  while (handler.hasNext()) {
+    handler >> currentArticle;
+    Block_t currentBlock;
+    currentBlock.tryPutArticle(currentArticle);
+    currentBlock.validate();
 
-            int qntInvalidToWrite = currentArticle.id - lastId - 1;
-            lastId = currentArticle.id;
+    fseek(toWrite, currentArticle.id * sizeof(Block_t), SEEK_SET);
+    fwrite(&currentBlock, sizeof(Block_t), 1, toWrite);
 
-            if (qntInvalidToWrite > 0) {
-                for (; qntInvalidToWrite; qntInvalidToWrite--) {
-                    fwrite(&Block_Handler_T::invalidBlock, sizeof(Block_t), 1, toWrite);
-                }
-            }
-        }
-
-        fwrite(&currentBlock, sizeof(Block_t), 1, toWrite);
-    }
+    handler.parseNext();
+  }
 }
 
-int HashFileFactory::hashFunction(int k) {
-    return k;
-}
+/**
+* Attemp to read an article receiving the ID, a callback variable and a file whence fields will be read
+*/
 
 bool HashFileFactory::getArticleFromHash(int id, Article_t *article, FILE *toRead) {
-    Block_t block;
-    
-    fseek(toRead, sizeof(Block_t) * hashFunction(id), SEEK_SET);
-    fread(&block, sizeof(Block_t), 1, toRead);
+  Block_t block;
 
-    Header_Interpretation_t *header = (Header_Interpretation_t*)(&block.content[0]);
+  fseek(toRead, sizeof(Block_t) * id, SEEK_SET);
+  fread(&block, sizeof(Block_t), 1, toRead);
 
-    if (!header->struct_header.valid) {
-        return false;
-    }
+  if (!block.isValid()) {
+    return false;
+  }
 
-    memcpy(article, block.getArticle(0), sizeof(Article_t));
+  memcpy(article, block.getArticle(0), sizeof(Article_t));
 
-    return true;
+  return true;
 }

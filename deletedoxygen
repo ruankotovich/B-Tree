@@ -1,0 +1,4 @@
+rm -rf ./xml
+rm -rf ./html
+rm -rf ./latex
+rm -rf api.md

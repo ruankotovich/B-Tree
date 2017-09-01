@@ -1,4 +1,11 @@
 /files
 /test
-/test/pattern.block
+/xml
+/html
+/latex
 **vscode**
+*.block
+findrec
+upload
+seek1
+seek2
