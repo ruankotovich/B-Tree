@@ -1,32 +1,42 @@
 #include <algorithm>
-
-template <typename T, typename K>
+#include <iostream>
 /**
 * Perform a binary search on the array
 * @In : receive na array, a length and a value
 * @Out : a pair, the first paramether regards if the search has found the value, false if it hasn't been found; the second paramether regards the index in the array
 */
+
+/**
+* Perform a upper_bound search on the array
+* @In : receive na array, a length and a value
+* @Out : a integer showing where the value must be placed
+*/
+template <typename T, typename K>
+static inline int upperBound(T* array, int length, K value)
+{
+    return std::upper_bound(array, array + length, value) - array;
+}
+
+/**
+* Perform a lower_bound search on the array
+* @In : receive na array, a length and a value
+* @Out : a integer showing where the value must be placed
+*/
+template <typename T, typename K>
+static inline int lowerBound(T* array, int length, K value)
+{
+    return std::lower_bound(array, array + length, value) - array;
+}
+
+template <typename T, typename K>
 static inline std::pair<bool, int> binarySearch(T* array, int length, K value)
 {
-    int _left = 0, _right = length - 1;
-    int _middle;
+    int position = lowerBound(array, length, value);
 
-    while (_right >= _left) {
-
-        _middle = (_left + _right) / 2;
-
-        if (array[_middle] < value) {
-            _left = _middle + 1;
-            continue;
-        } else if (array[_middle] > value) {
-            _right = _middle - 1;
-            continue;
-        }
-
-        return { true, _middle };
+    if (array[position] == value) {
+        return { true, position };
     }
-
-    return { false, _middle };
+    return { false, position };
 }
 
 template <typename T>

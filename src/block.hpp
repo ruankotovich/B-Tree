@@ -13,13 +13,17 @@
 * A struct to embbed and abstract an block, its head, data and tail
 */
 struct Block_t {
-  BYTE content[BLOCK_SIZE];
-  bool tryPutArticle(Article_t&);
-  bool hasSpace();
-  bool isValid();
-  void validate();
-  Article_t* getArticle(unsigned int);
-  Block_t();
+    BYTE content[BLOCK_SIZE];
+    bool tryPutArticle(Article_t&);
+    bool hasSpace();
+    bool isValid();
+    void validate();
+    Article_t* getArticle(unsigned int);
+    Block_t();
+};
+
+struct AbstractBlock_t {
+    char data[BLOCK_SIZE];
 };
 
 /**
@@ -27,34 +31,34 @@ struct Block_t {
 */
 union Header_Interpretation_t {
 
-  /**
+    /**
   * Abstract header representation
   */
-  struct Header {
-    unsigned long verificationMask;
-    unsigned char count;
-  } struct_header;
+    struct Header {
+        unsigned long verificationMask;
+        unsigned char count;
+    } struct_header;
 
-  BYTE bytes_header[RECORD_HEADER_SIZE];
+    BYTE bytes_header[RECORD_HEADER_SIZE];
 };
 
 /**
 * An union to abstract the reinterpretation of the tail onto the block
 */
-union Tail_Interpretation_t{
-  /**
+union Tail_Interpretation_t {
+    /**
   * Abstract tail representation
   */
-  struct Tail{
-    unsigned long verificationMask;
-  } struct_tail;
-  BYTE bytes_header[RECORD_TAIL_SIZE];
+    struct Tail {
+        unsigned long verificationMask;
+    } struct_tail;
+    BYTE bytes_header[RECORD_TAIL_SIZE];
 };
 
 /**
 * An union to abstract the reinterpretation of the article onto the block
 */
 union Article_Interpretation_t {
-  Article_t struct_article;
-  BYTE bytes_article[sizeof(Article_t)];
+    Article_t struct_article;
+    BYTE bytes_article[sizeof(Article_t)];
 };

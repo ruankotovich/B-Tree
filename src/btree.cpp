@@ -56,15 +56,17 @@ BTree::BTree()
 void BTree::buildIndex(FILE* indexFile)
 {
     rewind(indexFile);
-    fwrite(&rootOffset, sizeof(Block_t), 1, indexFile);
-    root = new Node(MAX_KEYS);
-    fwrite(root, sizeof(Block_t), 1, indexFile);
+    fwrite(&rootOffset, sizeof(AbstractBlock_t), 1, indexFile);
+
+    root = new BTreeNodeReinterpret();
+    fseek(indexFile, sizeof(AbstractBlock_t), SEEK_SET);
+    fwrite(root, sizeof(AbstractBlock_t), 1, indexFile);
 }
 
 void inline writeBackNode(Node* node, int offset, FILE* indexFile)
 {
-    fseek(indexFile, sizeof(Block_t) * offset, SEEK_SET);
-    fwrite(node, sizeof(Block_t), 1, indexFile);
+    fseek(indexFile, sizeof(AbstractBlock_t) * offset, SEEK_SET);
+    fwrite(node, sizeof(AbstractBlock_t), 1, indexFile);
 }
 
 char inline relativeKeyPosition(int key, int leftMiddle, int rightMiddle)
@@ -82,19 +84,17 @@ int inline writeNewNode(Node* node, FILE* indexFile)
 {
     fseek(indexFile, 0, SEEK_END);
 
-    fwrite(node, sizeof(Block_t), 1, indexFile);
-    return (ftell(indexFile) / sizeof(Block_t)) - 1;
+    fwrite(node, sizeof(AbstractBlock_t), 1, indexFile);
+    return (ftell(indexFile) / sizeof(AbstractBlock_t)) - 1;
 }
 
-TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FILE* indexFile)
+TreeRecursionResponse BTree::insertRecursive(int key, BTreeNodeReinterpret* nodeReinterpretation, int offset, FILE* indexFileWrite, FILE* indexFileRead)
 {
-    if (node->isLeaf()) {
+    if (nodeReinterpretation->node.isLeaf()) {
 
-        if (node->hasRoom()) {
-            node->insert(key);
-            writeBackNode(node, offset, indexFile);
-
-            // return { false, { 0, 0 } };
+        if (nodeReinterpretation->node.hasRoom()) {
+            nodeReinterpretation->node.insert(key);
+            writeBackNode(&nodeReinterpretation->node, offset, indexFileWrite);
             return SUCCESSFUL_TREE_INSERTION;
         }
 
@@ -102,20 +102,20 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
         int promoted;
 
         // elege o promoted e manipula os vetores resultantes da operação do splitLeaf.
-        int leftMiddleKey = node->keys[LEFT_MIDDLE_KEY];
-        int rightMiddleKey = node->keys[RIGHT_MIDDLE_KEY];
+        int leftMiddleKey = nodeReinterpretation->node.keys[LEFT_MIDDLE_KEY];
+        int rightMiddleKey = nodeReinterpretation->node.keys[RIGHT_MIDDLE_KEY];
 
-        splitLeaf->count = node->count = HALF_MAX_KEYS;
+        splitLeaf->count = nodeReinterpretation->node.count = HALF_MAX_KEYS;
 
         switch (relativeKeyPosition(key, leftMiddleKey, rightMiddleKey)) {
         case RELATIVE_LEFT: {
             promoted = leftMiddleKey;
-            --node->count;
+            --nodeReinterpretation->node.count;
 
-            node->insert(key);
+            nodeReinterpretation->node.insert(key);
 
             for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
-                splitLeaf->keys[j] = node->keys[i];
+                splitLeaf->keys[j] = nodeReinterpretation->node.keys[i];
             }
         } // não esquecer de manipular os blockPointes para nós não-folha
         break;
@@ -125,7 +125,7 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
             --splitLeaf->count;
 
             for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
-                splitLeaf->keys[j] = node->keys[i];
+                splitLeaf->keys[j] = nodeReinterpretation->node.keys[i];
             } // não esquecer de manipular os blockPointes para nós não-folha
 
             splitLeaf->insert(key);
@@ -135,15 +135,15 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
             promoted = key;
 
             for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
-                splitLeaf->keys[j] = node->keys[i];
+                splitLeaf->keys[j] = nodeReinterpretation->node.keys[i];
             }
         } // não esquecer de manipular os blockPointes para nós não-folha
 
         break;
         }
 
-        writeBackNode(node, offset, indexFile);
-        int offset = writeNewNode(splitLeaf, indexFile);
+        writeBackNode(&nodeReinterpretation->node, offset, indexFileWrite);
+        int offset = writeNewNode(splitLeaf, indexFileWrite);
 
         delete splitLeaf; // deleta da memória principal pois já foi salvo no disco
 
@@ -151,112 +151,118 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
         return TreeRecursionResponse(true, promoted, offset);
     }
 
-    auto result = binarySearch(node->keys, node->count, key); // [TROCAR]
+    int result = upperBound(nodeReinterpretation->node.keys, nodeReinterpretation->node.count, key); // [TROCAR]
 
-    unsigned short childNodeOffset = ((key < node->keys[result.second]) ? node->blockPointers[result.second] : node->blockPointers[result.second + 1]);
+    unsigned short childNodeOffset;
 
-    Node* retrieveNode = new Node(MAX_KEYS);
-    fseek(indexFile, sizeof(Block_t) * childNodeOffset, SEEK_SET);
-    fread(retrieveNode, sizeof(Block_t), 1, indexFile);
+    if (result >= nodeReinterpretation->node.count) {
+        childNodeOffset = result;
+        result = nodeReinterpretation->node.count - 1;
+    }
 
-    auto resultRecursion = insertRecursive(key, retrieveNode, childNodeOffset, indexFile);
+    childNodeOffset = ((key < nodeReinterpretation->node.keys[result]) ? nodeReinterpretation->node.blockPointers[result] : nodeReinterpretation->node.blockPointers[result + 1]);
+
+    BTreeNodeReinterpret* retrieveNode = new BTreeNodeReinterpret();
+    fseek(indexFileRead, sizeof(AbstractBlock_t) * childNodeOffset, SEEK_SET);
+    fread(&retrieveNode->block, sizeof(AbstractBlock_t), 1, indexFileRead);
+
+    auto resultRecursion = insertRecursive(key, retrieveNode, childNodeOffset, indexFileWrite, indexFileRead);
     delete retrieveNode;
 
     // WARNING: FALTA RESOLVER A QUESTÃO DE DELEÇÃO DOS PONTEIROS PARA NODE NAS CHAMADAS RECURSIVAS
 
     if (resultRecursion.hasBeenSplit) { // caso em que veio um valor promovido e um blockPointer
         //caso 1 - tem espaço para inserir o promovido
-        if (node->hasRoom()) {
+        if (nodeReinterpretation->node.hasRoom()) {
             //o + 1 é para não realizar essa soma em toda iteração do for logo abaixo
-            unsigned short rightIndexInserted = node->insert(resultRecursion.promotedKey) + 1;
+            unsigned short rightIndexInserted = nodeReinterpretation->node.insert(resultRecursion.promotedKey) + 1;
 
-            for (unsigned short i = node->countPointers; i > rightIndexInserted; --i) {
-                node->blockPointers[i] = node->blockPointers[i - 1];
+            for (unsigned short i = nodeReinterpretation->node.countPointers; i > rightIndexInserted; --i) {
+                nodeReinterpretation->node.blockPointers[i] = nodeReinterpretation->node.blockPointers[i - 1];
             }
 
-            node->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
-            ++node->countPointers;
+            nodeReinterpretation->node.blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
+            ++nodeReinterpretation->node.countPointers;
 
-            writeBackNode(node, offset, indexFile);
+            writeBackNode(&nodeReinterpretation->node, offset, indexFileWrite);
         } else { // caso 2 - não tem espaço para inserir o promovido -> fazer o split com remanejamento de chaves
-            Node* split = new Node(MAX_KEYS);
+            BTreeNodeReinterpret* split = new BTreeNodeReinterpret();
             int promoted;
 
             // elege o promoted e manipula os vetores resultantes da operação do split.
-            int leftMiddleKey = node->keys[LEFT_MIDDLE_KEY];
-            int rightMiddleKey = node->keys[RIGHT_MIDDLE_KEY];
+            int leftMiddleKey = nodeReinterpretation->node.keys[LEFT_MIDDLE_KEY];
+            int rightMiddleKey = nodeReinterpretation->node.keys[RIGHT_MIDDLE_KEY];
 
-            split->count = node->count = HALF_MAX_KEYS; // remoção lógica exatamente na metade
+            split->node.count = nodeReinterpretation->node.count = HALF_MAX_KEYS; // remoção lógica exatamente na metade
 
             //como está cheio, vai metade dos elementos para cada bloco, contnado com o split.
             // se vai metade, haverá metade + 1 ponteiros para bloco preenchidos.
-            split->countPointers = node->countPointers = HALF_MAX_KEYS + 1;
+            split->node.countPointers = nodeReinterpretation->node.countPointers = HALF_MAX_KEYS + 1;
 
             switch (relativeKeyPosition(resultRecursion.promotedKey, leftMiddleKey, rightMiddleKey)) {
             case RELATIVE_LEFT: {
                 promoted = leftMiddleKey;
 
-                --node->count;
+                --nodeReinterpretation->node.count;
 
                 // índice do ponteiro mais à direita do vetor blockPointers
-                unsigned short greaterNodeBlockPointer = node->blockPointers[node->countPointers - 1]; // a subtração tem a ver com índice
+                unsigned short greaterNodeBlockPointer = nodeReinterpretation->node.blockPointers[nodeReinterpretation->node.countPointers - 1]; // a subtração tem a ver com índice
 
                 //índice em que foi inserido o promovido no nó já existente
-                unsigned short rightIndexInserted = node->insert(resultRecursion.promotedKey) + 1;
+                unsigned short rightIndexInserted = nodeReinterpretation->node.insert(resultRecursion.promotedKey) + 1;
 
                 //remanejar os blockPoints
-                for (unsigned short i = node->countPointers - 1; i > rightIndexInserted; --i) {
-                    node->blockPointers[i] = node->blockPointers[i - 1];
+                for (unsigned short i = nodeReinterpretation->node.countPointers - 1; i > rightIndexInserted; --i) {
+                    nodeReinterpretation->node.blockPointers[i] = nodeReinterpretation->node.blockPointers[i - 1];
                 }
 
-                node->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
+                nodeReinterpretation->node.blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
 
                 for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
-                    split->keys[j] = node->keys[i];
-                    split->blockPointers[j + 1] = node->blockPointers[i + 1];
+                    split->node.keys[j] = nodeReinterpretation->node.keys[i];
+                    split->node.blockPointers[j + 1] = nodeReinterpretation->node.blockPointers[i + 1];
                 } // não esquecer de manipular os blockPointes para nós não-folha
 
-                split->blockPointers[0] = greaterNodeBlockPointer;
+                split->node.blockPointers[0] = greaterNodeBlockPointer;
             } break;
 
             case RELATIVE_RIGHT: {
                 promoted = rightMiddleKey;
-                --split->count;
+                --split->node.count;
                 // não é preciso modificar o countPointers nem o count do node aqui porque eles já foram atribuidos ali em cima,
                 // então a remoção lógica já foi feita
 
                 for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
-                    split->keys[j] = node->keys[i];
-                    split->blockPointers[j] = node->blockPointers[i];
+                    split->node.keys[j] = nodeReinterpretation->node.keys[i];
+                    split->node.blockPointers[j] = nodeReinterpretation->node.blockPointers[i];
                 } // não esquecer de manipular os blockPointes para nós não-folha/
 
-                split->blockPointers[HALF_MAX_KEYS - 1] = node->blockPointers[MAX_KEYS];
-                unsigned short rightIndexInserted = split->insert(resultRecursion.promotedKey) + 1;
+                split->node.blockPointers[HALF_MAX_KEYS - 1] = nodeReinterpretation->node.blockPointers[MAX_KEYS];
+                unsigned short rightIndexInserted = split->node.insert(resultRecursion.promotedKey) + 1;
 
                 //remanejar os blockPoints
-                for (unsigned short i = split->countPointers - 1; i > rightIndexInserted; --i) {
-                    split->blockPointers[i] = split->blockPointers[i - 1];
+                for (unsigned short i = split->node.countPointers - 1; i > rightIndexInserted; --i) {
+                    split->node.blockPointers[i] = split->node.blockPointers[i - 1];
                 }
 
-                split->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
+                split->node.blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
             } break;
 
             case RELATIVE_MIDDLE: {
                 promoted = resultRecursion.promotedKey;
 
                 for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
-                    split->keys[j] = node->keys[i];
-                    split->blockPointers[j + 1] = node->blockPointers[i + 1];
+                    split->node.keys[j] = nodeReinterpretation->node.keys[i];
+                    split->node.blockPointers[j + 1] = nodeReinterpretation->node.blockPointers[i + 1];
                 } // não esquecer de manipular os blockPointes para nós não-folha
-                split->blockPointers[0] = resultRecursion.newBlockOffset;
+                split->node.blockPointers[0] = resultRecursion.newBlockOffset;
             } break;
             }
 
-            writeBackNode(node, offset, indexFile);
-            int offset = writeNewNode(split, indexFile);
+            writeBackNode(&nodeReinterpretation->node, offset, indexFileWrite);
+            int offset = writeNewNode(&split->node, indexFileWrite);
             delete split; // deleta da memória principal pois já foi salvo no disco
             return TreeRecursionResponse(true, promoted, offset);
-            // return { true, { promoted, offset } };
         }
     }
 
@@ -265,40 +271,37 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
     // return { false, { 0, 0 } };
 }
 
-void BTree::insert(int key, FILE* indexFile)
+void BTree::insert(int key, FILE* indexFileWrite, FILE* indexFileRead)
 { // [TROCAR]
-    auto result = insertRecursive(key, root, rootOffset, indexFile);
+    auto result = insertRecursive(key, root, rootOffset, indexFileWrite, indexFileRead);
 
     if (result.hasBeenSplit) { // se tiver um promovido vindo de um split abaixo
-        Node* newRoot = new Node(MAX_KEYS);
-        newRoot->insert(result.promotedKey); // insere a key promovida do nível abaixo
-        newRoot->blockPointers[0] = rootOffset; //apontador esquerdo -> antiga raíz
+        BTreeNodeReinterpret* newRoot = new BTreeNodeReinterpret();
+        newRoot->node.insert(result.promotedKey); // insere a key promovida do nível abaixo
+        newRoot->node.blockPointers[0] = rootOffset; //apontador esquerdo -> antiga raíz
 
         // considerando que o block splittado já foi salvo no arquivo na função insertRecursive
-        newRoot->blockPointers[1] = result.newBlockOffset;
-        newRoot->countPointers = 2;
+        newRoot->node.blockPointers[1] = result.newBlockOffset;
+        newRoot->node.countPointers = 2;
 
         // salvar o newRoot no arquivo da BTree
-        rootOffset = writeNewNode(newRoot, indexFile);
+        rootOffset = writeNewNode(&newRoot->node, indexFileWrite);
 
         // atualizar o header
-        fseek(indexFile, 0, SEEK_SET);
+        fseek(indexFileWrite, 0, SEEK_SET);
 
-        fwrite(&rootOffset, sizeof(Block_t), 1, indexFile);
+        fwrite(&rootOffset, sizeof(AbstractBlock_t), 1, indexFileWrite);
 
         delete (root);
         root = newRoot;
 
-        fseek(indexFile, 0, SEEK_END);
+        fseek(indexFileWrite, 0, SEEK_END);
     }
 }
 
 bool BTree::getArticle(int key, Article_t* article, FILE* indexFile)
 {
-    Block_t currentBlock;
-    BTreeNodeReinterpret* reinterpretation = (BTreeNodeReinterpret*)&currentBlock;
-    reinterpretation->node = *root;
-
+    BTreeNodeReinterpret* reinterpretation = new BTreeNodeReinterpret(this->root);
     if (reinterpretation->node.count <= 0) {
         std::cout << "Not Found" << '\n';
         return false;
@@ -312,14 +315,13 @@ bool BTree::getArticle(int key, Article_t* article, FILE* indexFile)
             std::cout << "Not Found" << '\n';
             return false;
         }
-
         std::cout << "It was supposed to be in this position in the block : " << currentPointer.second << '\n';
-        unsigned short toSeek = (key < reinterpretation->node.keys[currentPointer.second] ? reinterpretation->node.blockPointers[currentPointer.second] : reinterpretation->node.blockPointers[currentPointer.second + 1]);
-        std::cout << "Seeking between " << reinterpretation->node.blockPointers[currentPointer.second] << " and " << reinterpretation->node.blockPointers[currentPointer.second + 1] << '\n';
+        unsigned short toSeek = currentPointer.second >= reinterpretation->node.count ? reinterpretation->node.blockPointers[reinterpretation->node.count] : (key < reinterpretation->node.keys[currentPointer.second] ? reinterpretation->node.blockPointers[currentPointer.second] : reinterpretation->node.blockPointers[currentPointer.second + 1]);
+        // std::cout << "Seeking between " << reinterpretation->node.blockPointers[currentPointer.second] << " and " << reinterpretation->node.blockPointers[currentPointer.second + 1] << '\n';
         std::cout << "New block to search : " << toSeek << "\n\n";
 
-        fseek(indexFile, sizeof(Block_t) * toSeek, SEEK_SET);
-        fread(&currentBlock, sizeof(Block_t), 1, indexFile);
+        fseek(indexFile, sizeof(AbstractBlock_t) * toSeek, SEEK_SET);
+        fread(&reinterpretation->block, sizeof(AbstractBlock_t), 1, indexFile);
 
         currentPointer = binarySearch(reinterpretation->node.keys, reinterpretation->node.count, key);
     }

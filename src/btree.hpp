@@ -26,29 +26,36 @@ struct Node {
     unsigned short countPointers;
     unsigned int keys[MAX_KEYS]; // 2m   -> trocar por char[300] para o Título [TROCAR]
     unsigned short blockPointers[MAX_KEYS + 1]; // 2m + 1
-    
+
     Node(int order);
     bool isLeaf();
     bool hasRoom();
     unsigned short insert(int key); //[TROCAR]
 };
 
+union BTreeNodeReinterpret {
+    Node node;
+    AbstractBlock_t block;
+    BTreeNodeReinterpret()
+        : node(MAX_KEYS)
+    {
+    }
+    BTreeNodeReinterpret(BTreeNodeReinterpret* abs)
+    {
+        std::memcpy(&this->block, &abs->block, sizeof(AbstractBlock_t));
+    }
+};
+
 class BTree {
 private:
     TreeRecursionResponse SUCCESSFUL_TREE_INSERTION;
-    Node* root;
-
-    TreeRecursionResponse insertRecursive(int key, Node* node, int offset, FILE* indexFile);
+    BTreeNodeReinterpret* root;
+    TreeRecursionResponse insertRecursive(int key, BTreeNodeReinterpret* node, int offset, FILE* indexFileWrite, FILE* indexFileRead);
 
 public:
-    void insert(int key, FILE* indexFile);
+    void insert(int key, FILE* indexFileWrite, FILE* indexFileRead);
     bool getArticle(int key, Article_t*, FILE*);
     void buildIndex(FILE*);
     unsigned short rootOffset;
     BTree();
-};
-
-union BTreeNodeReinterpret {
-    Node node;
-    Block_t block;
 };
