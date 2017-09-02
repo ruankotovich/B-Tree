@@ -1,16 +1,28 @@
 ### C Arguments
 CC=g++
-CFLAGS=-std=c++11 -O2
+CFLAGS=-std=c++11 -g -Wall
 
 ### Compiler Arguments
 INCLUDE_PATH=src
 SRC_PATH=src
 
-all: upload findrec seek1 seek2 clean
+all: upload findrec seek1 seek2 main debug clean
 
 seek1:
 
 seek2:
+
+debug: debug.o
+	$(CC) -o debug iohandler.o debug.o btree.o article.o block.o hashfilefactory.o $(CFLAGS)
+
+main: main.o
+	$(CC) -o main iohandler.o main.o btree.o article.o block.o hashfilefactory.o $(CFLAGS)
+
+main.o: btree.o $(SRC_PATH)/main.cpp
+	$(CC) -c $(SRC_PATH)/main.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
+	
+debug.o: btree.o $(SRC_PATH)/debug.cpp
+	$(CC) -c $(SRC_PATH)/debug.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
 upload: upload.o  
 	$(CC) -o upload iohandler.o upload.o btree.o article.o block.o hashfilefactory.o $(CFLAGS)

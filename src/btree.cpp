@@ -10,13 +10,6 @@ Node::Node(int order)
 {
     count = 0;
     countPointers = 0;
-
-    int i;
-
-    /*for (i = 0; i < order; i++) {
-        //std::cout << i << std::endl;
-        blockPointers[i] = -1; // -1 não faz sentido como posição do arquivo, então é como um "Nullptr"
-    }*/
 }
 
 bool Node::isLeaf()
@@ -30,7 +23,7 @@ bool Node::hasRoom()
 }
 
 /**
-* Insert a key in a node and returns the index where the insertion was made.    
+* Insert a key in a node and returns the index where the insertion was made.
 */
 unsigned short Node::insert(int key)
 { // [TROCAR]
@@ -54,15 +47,16 @@ unsigned short Node::insert(int key)
     return i;
 }
 
-BTree::BTree() : SUCCESSFUL_TREE_INSERTION(false, 0, 0)
+BTree::BTree()
+    : SUCCESSFUL_TREE_INSERTION(false, 0, 0)
 {
     rootOffset = 1;
 }
 
 void BTree::buildIndex(FILE* indexFile)
 {
-    fwrite(&rootOffset, sizeof(BTreeHeader), 1, indexFile);
-
+    rewind(indexFile);
+    fwrite(&rootOffset, sizeof(Block_t), 1, indexFile);
     root = new Node(MAX_KEYS);
     fwrite(root, sizeof(Block_t), 1, indexFile);
 }
@@ -88,7 +82,7 @@ int inline writeNewNode(Node* node, FILE* indexFile)
 {
     fseek(indexFile, 0, SEEK_END);
 
-    fwrite(node, sizeof(NodeReinterpret), 1, indexFile);
+    fwrite(node, sizeof(Block_t), 1, indexFile);
     return (ftell(indexFile) / sizeof(Block_t)) - 1;
 }
 
@@ -162,7 +156,8 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
     unsigned short childNodeOffset = ((key < node->keys[result.second]) ? node->blockPointers[result.second] : node->blockPointers[result.second + 1]);
 
     Node* retrieveNode = new Node(MAX_KEYS);
-    fread(retrieveNode, sizeof(Block_t) * childNodeOffset, 1, indexFile);
+    fseek(indexFile, sizeof(Block_t) * childNodeOffset, SEEK_SET);
+    fread(retrieveNode, sizeof(Block_t), 1, indexFile);
 
     auto resultRecursion = insertRecursive(key, retrieveNode, childNodeOffset, indexFile);
     delete retrieveNode;
@@ -214,7 +209,6 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
                     node->blockPointers[i] = node->blockPointers[i - 1];
                 }
 
-                
                 node->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
 
                 for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
@@ -231,10 +225,9 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
                 // não é preciso modificar o countPointers nem o count do node aqui porque eles já foram atribuidos ali em cima,
                 // então a remoção lógica já foi feita
 
-
                 for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
                     split->keys[j] = node->keys[i];
-                    split->blockPointers[j] = node->blockPointers[i]; 
+                    split->blockPointers[j] = node->blockPointers[i];
                 } // não esquecer de manipular os blockPointes para nós não-folha/
 
                 split->blockPointers[HALF_MAX_KEYS - 1] = node->blockPointers[MAX_KEYS];
@@ -257,7 +250,6 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
                 } // não esquecer de manipular os blockPointes para nós não-folha
                 split->blockPointers[0] = resultRecursion.newBlockOffset;
             } break;
-
             }
 
             writeBackNode(node, offset, indexFile);
@@ -301,35 +293,46 @@ void BTree::insert(int key, FILE* indexFile)
     }
 }
 
-void BTree::getArticle(int key, Article_t* article, FILE* indexFile)
+bool BTree::getArticle(int key, Article_t* article, FILE* indexFile)
 {
-    Node currentBlock = *root;
-    auto currentPointer = binarySearch(currentBlock.keys, currentBlock.count, key);
-    bool notFound = false;
+    Block_t currentBlock;
+    BTreeNodeReinterpret* reinterpretation = (BTreeNodeReinterpret*)&currentBlock;
+    reinterpretation->node = *root;
+
+    if (reinterpretation->node.count <= 0) {
+        std::cout << "Not Found" << '\n';
+        return false;
+    }
+
+    auto currentPointer = binarySearch(reinterpretation->node.keys, reinterpretation->node.count, key);
+    std::cout << "Searching for key " << key << " at the root(" << this->rootOffset << ")\n";
 
     while (!currentPointer.first) {
-
-        if (currentBlock.isLeaf()) {
-            notFound = true;
-            break;
+        if (reinterpretation->node.isLeaf()) {
+            std::cout << "Not Found" << '\n';
+            return false;
         }
 
-        rewind(indexFile);
-        unsigned short toSeek = (key < currentBlock.keys[currentPointer.second] ? currentBlock.blockPointers[currentPointer.second] : currentBlock.blockPointers[currentPointer.second + 1]);
-        fread(&currentBlock, sizeof(Block_t) * toSeek, 1, indexFile);
-        currentPointer = binarySearch(currentBlock.keys, currentBlock.count, key);
+        std::cout << "It was supposed to be in this position in the block : " << currentPointer.second << '\n';
+        unsigned short toSeek = (key < reinterpretation->node.keys[currentPointer.second] ? reinterpretation->node.blockPointers[currentPointer.second] : reinterpretation->node.blockPointers[currentPointer.second + 1]);
+        std::cout << "Seeking between " << reinterpretation->node.blockPointers[currentPointer.second] << " and " << reinterpretation->node.blockPointers[currentPointer.second + 1] << '\n';
+        std::cout << "New block to search : " << toSeek << "\n\n";
+
+        fseek(indexFile, sizeof(Block_t) * toSeek, SEEK_SET);
+        fread(&currentBlock, sizeof(Block_t), 1, indexFile);
+
+        currentPointer = binarySearch(reinterpretation->node.keys, reinterpretation->node.count, key);
     }
 
-    if (!notFound) {
-        HashFileFactory hashFileFactory;
+    std::cout << "Found at the position " << currentPointer.second << '\n';
+    HashFileFactory hashFileFactory;
 
-        FILE* blockFile = fopen("./data.block", "rb+");
+    FILE* blockFile = fopen("./data.block", "rb+");
 
-        if (blockFile != NULL) {
-            rewind(blockFile);
-            hashFileFactory.getArticleFromHash(currentPointer.second, article, blockFile);
-        }
-    } else {
-        article = nullptr;
+    if (blockFile != NULL) {
+        rewind(blockFile);
+        hashFileFactory.getArticleFromHash(reinterpretation->node.keys[currentPointer.second], article, blockFile);
     }
+
+    return true;
 }
