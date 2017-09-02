@@ -300,3 +300,36 @@ void BTree::insert(int key, FILE* indexFile)
         fseek(indexFile, 0, SEEK_END);
     }
 }
+
+void BTree::getArticle(int key, Article_t* article, FILE* indexFile)
+{
+    Node currentBlock = *root;
+    auto currentPointer = binarySearch(currentBlock.keys, currentBlock.count, key);
+    bool notFound = false;
+
+    while (!currentPointer.first) {
+
+        if (currentBlock.isLeaf()) {
+            notFound = true;
+            break;
+        }
+
+        rewind(indexFile);
+        unsigned short toSeek = (key < currentBlock.keys[currentPointer.second] ? currentBlock.blockPointers[currentPointer.second] : currentBlock.blockPointers[currentPointer.second + 1]);
+        fread(&currentBlock, sizeof(Block_t) * toSeek, 1, indexFile);
+        currentPointer = binarySearch(currentBlock.keys, currentBlock.count, key);
+    }
+
+    if (!notFound) {
+        HashFileFactory hashFileFactory;
+
+        FILE* blockFile = fopen("./data.block", "rb+");
+
+        if (blockFile != NULL) {
+            rewind(blockFile);
+            hashFileFactory.getArticleFromHash(currentPointer.second, article, blockFile);
+        }
+    } else {
+        article = nullptr;
+    }
+}

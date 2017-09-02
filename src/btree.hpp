@@ -1,6 +1,7 @@
 #pragma once
 #include "arrayoperations.hpp"
 #include "block.hpp"
+#include "hashfilefactory.hpp"
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -53,7 +54,7 @@ private:
 
 public:
     void insert(int key, FILE* indexFile);
-    // bool getArticle()
+    void getArticle(int key, Article_t*, FILE*);
     void buildIndex(FILE*);
     short rootOffset;
     BTree();
