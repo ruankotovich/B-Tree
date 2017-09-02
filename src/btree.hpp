@@ -20,9 +20,7 @@ struct TreeRecursionResponse {
     TreeRecursionResponse(bool, int, unsigned short);
 };
 
-namespace Singleton {
-    TreeRecursionResponse SUCCESSFUL_TREE_INSERTION(false, 0, 0);
-}
+
 
 struct Node {
     unsigned short count;
@@ -45,6 +43,8 @@ union NodeReinterpret {
 
 class BTree {
 private:
+    TreeRecursionResponse SUCCESSFUL_TREE_INSERTION;
+    
     /* Degree, grau. Em outras palavras, o lower-bound, a quantidade mínima de elementos 
     em cada nó (exceto na raíz). */
 

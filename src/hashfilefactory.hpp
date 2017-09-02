@@ -12,7 +12,6 @@ class HashFileFactory {
 private:
   int hashSize;
 public:
-  HashFileFactory();
   void createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite); // poderia retornar boolean indicando que houve algum erro na leitura ou escrita. NA1 PODERIA
   bool getArticleFromHash(int id, Article_t *article, FILE *toRead);
 

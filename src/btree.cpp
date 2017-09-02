@@ -54,7 +54,7 @@ unsigned short Node::insert(int key)
     return i;
 }
 
-BTree::BTree()
+BTree::BTree() : SUCCESSFUL_TREE_INSERTION(false, 0, 0)
 {
     rootOffset = 1;
 }
@@ -101,7 +101,7 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
             writeBackNode(node, offset, indexFile);
 
             // return { false, { 0, 0 } };
-            return Singleton::SUCCESSFUL_TREE_INSERTION;
+            return SUCCESSFUL_TREE_INSERTION;
         }
 
         Node* splitLeaf = new Node(MAX_KEYS);
@@ -180,6 +180,7 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
             }
 
             node->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
+            ++node->countPointers;
 
             writeBackNode(node, offset, indexFile);
         } else { // caso 2 - não tem espaço para inserir o promovido -> fazer o split com remanejamento de chaves
@@ -213,6 +214,7 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
                     node->blockPointers[i] = node->blockPointers[i - 1];
                 }
 
+                
                 node->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
 
                 for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
@@ -226,12 +228,24 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
             case RELATIVE_RIGHT: {
                 promoted = rightMiddleKey;
                 --split->count;
+                // não é preciso modificar o countPointers nem o count do node aqui porque eles já foram atribuidos ali em cima,
+                // então a remoção lógica já foi feita
 
-                split->insert(resultRecursion.promotedKey);
 
                 for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
                     split->keys[j] = node->keys[i];
-                } // não esquecer de manipular os blockPointes para nós não-folha
+                    split->blockPointers[j] = node->blockPointers[i]; 
+                } // não esquecer de manipular os blockPointes para nós não-folha/
+
+                split->blockPointers[HALF_MAX_KEYS - 1] = node->blockPointers[MAX_KEYS];
+                unsigned short rightIndexInserted = split->insert(resultRecursion.promotedKey) + 1;
+
+                //remanejar os blockPoints
+                for (unsigned short i = split->countPointers - 1; i > rightIndexInserted; --i) {
+                    split->blockPointers[i] = split->blockPointers[i - 1];
+                }
+
+                split->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
             } break;
 
             case RELATIVE_MIDDLE: {
@@ -243,6 +257,7 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
                 } // não esquecer de manipular os blockPointes para nós não-folha
                 split->blockPointers[0] = resultRecursion.newBlockOffset;
             } break;
+
             }
 
             writeBackNode(node, offset, indexFile);
@@ -252,7 +267,8 @@ TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FI
             // return { true, { promoted, offset } };
         }
     }
-    return Singleton::SUCCESSFUL_TREE_INSERTION;
+
+    return SUCCESSFUL_TREE_INSERTION;
     // return TreeRecursionResponse(false, 0, 0);
     // return { false, { 0, 0 } };
 }
