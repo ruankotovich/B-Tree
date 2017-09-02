@@ -1,4 +1,10 @@
 #include "btree.hpp"
+TreeRecursionResponse::TreeRecursionResponse(bool _hasBeenSplit, int _promotedKey, unsigned short _newBlockOffset)
+    : hasBeenSplit(_hasBeenSplit)
+    , promotedKey(_promotedKey)
+    , newBlockOffset(_newBlockOffset)
+{
+}
 
 Node::Node(int order)
 {
@@ -86,7 +92,7 @@ int inline writeNewNode(Node* node, FILE* indexFile)
     return (ftell(indexFile) / sizeof(Block_t)) - 1;
 }
 
-std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, Node* node, int offset, FILE* indexFile)
+TreeRecursionResponse BTree::insertRecursive(int key, Node* node, int offset, FILE* indexFile)
 {
     if (node->isLeaf()) {
 
@@ -94,7 +100,8 @@ std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, 
             node->insert(key);
             writeBackNode(node, offset, indexFile);
 
-            return { false, { 0, 0 } };
+            // return { false, { 0, 0 } };
+            return Singleton::SUCCESSFUL_TREE_INSERTION;
         }
 
         Node* splitLeaf = new Node(MAX_KEYS);
@@ -146,7 +153,8 @@ std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, 
 
         delete splitLeaf; // deleta da memória principal pois já foi salvo no disco
 
-        return { true, { promoted, offset } };
+        // return { true, { promoted, offset } };
+        return TreeRecursionResponse(true, promoted, offset);
     }
 
     auto result = binarySearch(node->keys, node->count, key); // [TROCAR]
@@ -161,17 +169,17 @@ std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, 
 
     // WARNING: FALTA RESOLVER A QUESTÃO DE DELEÇÃO DOS PONTEIROS PARA NODE NAS CHAMADAS RECURSIVAS
 
-    if (resultRecursion.first) { // caso em que veio um valor promovido e um blockPointer
+    if (resultRecursion.hasBeenSplit) { // caso em que veio um valor promovido e um blockPointer
         //caso 1 - tem espaço para inserir o promovido
         if (node->hasRoom()) {
             //o + 1 é para não realizar essa soma em toda iteração do for logo abaixo
-            unsigned short rightIndexInserted = node->insert(resultRecursion.second.first) + 1;
+            unsigned short rightIndexInserted = node->insert(resultRecursion.promotedKey) + 1;
 
             for (unsigned short i = node->countPointers; i > rightIndexInserted; --i) {
                 node->blockPointers[i] = node->blockPointers[i - 1];
             }
 
-            node->blockPointers[rightIndexInserted] = resultRecursion.second.second;
+            node->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
 
             writeBackNode(node, offset, indexFile);
         } else { // caso 2 - não tem espaço para inserir o promovido -> fazer o split com remanejamento de chaves
@@ -188,7 +196,7 @@ std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, 
             // se vai metade, haverá metade + 1 ponteiros para bloco preenchidos.
             split->countPointers = node->countPointers = HALF_MAX_KEYS + 1;
 
-            switch (relativeKeyPosition(resultRecursion.second.first, leftMiddleKey, rightMiddleKey)) {
+            switch (relativeKeyPosition(resultRecursion.promotedKey, leftMiddleKey, rightMiddleKey)) {
             case RELATIVE_LEFT: {
                 promoted = leftMiddleKey;
 
@@ -198,14 +206,14 @@ std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, 
                 unsigned short greaterNodeBlockPointer = node->blockPointers[node->countPointers - 1]; // a subtração tem a ver com índice
 
                 //índice em que foi inserido o promovido no nó já existente
-                unsigned short rightIndexInserted = node->insert(resultRecursion.second.first) + 1;
+                unsigned short rightIndexInserted = node->insert(resultRecursion.promotedKey) + 1;
 
                 //remanejar os blockPoints
                 for (unsigned short i = node->countPointers - 1; i > rightIndexInserted; --i) {
                     node->blockPointers[i] = node->blockPointers[i - 1];
                 }
 
-                node->blockPointers[rightIndexInserted] = resultRecursion.second.second;
+                node->blockPointers[rightIndexInserted] = resultRecursion.newBlockOffset;
 
                 for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
                     split->keys[j] = node->keys[i];
@@ -219,7 +227,7 @@ std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, 
                 promoted = rightMiddleKey;
                 --split->count;
 
-                split->insert(resultRecursion.second.first);
+                split->insert(resultRecursion.promotedKey);
 
                 for (int i = RIGHT_MIDDLE_KEY + 1, j = 0; i < MAX_KEYS; ++i, ++j) {
                     split->keys[j] = node->keys[i];
@@ -227,38 +235,39 @@ std::pair<bool, std::pair<int, unsigned short>> BTree::insertRecursive(int key, 
             } break;
 
             case RELATIVE_MIDDLE: {
-                promoted = resultRecursion.second.first;
+                promoted = resultRecursion.promotedKey;
 
                 for (int i = HALF_MAX_KEYS, j = 0; i < MAX_KEYS; ++i, ++j) {
                     split->keys[j] = node->keys[i];
                     split->blockPointers[j + 1] = node->blockPointers[i + 1];
                 } // não esquecer de manipular os blockPointes para nós não-folha
-                split->blockPointers[0] = resultRecursion.second.second;
+                split->blockPointers[0] = resultRecursion.newBlockOffset;
             } break;
             }
 
             writeBackNode(node, offset, indexFile);
             int offset = writeNewNode(split, indexFile);
             delete split; // deleta da memória principal pois já foi salvo no disco
-
-            return { true, { promoted, offset } };
+            return TreeRecursionResponse(true, promoted, offset);
+            // return { true, { promoted, offset } };
         }
     }
-
-    return { false, { 0, 0 } };
+    return Singleton::SUCCESSFUL_TREE_INSERTION;
+    // return TreeRecursionResponse(false, 0, 0);
+    // return { false, { 0, 0 } };
 }
 
 void BTree::insert(int key, FILE* indexFile)
 { // [TROCAR]
     auto result = insertRecursive(key, root, rootOffset, indexFile);
 
-    if (result.first) { // se tiver um promovido vindo de um split abaixo
+    if (result.hasBeenSplit) { // se tiver um promovido vindo de um split abaixo
         Node* newRoot = new Node(MAX_KEYS);
-        newRoot->insert(result.second.first); // insere a key promovida do nível abaixo
+        newRoot->insert(result.promotedKey); // insere a key promovida do nível abaixo
         newRoot->blockPointers[0] = rootOffset; //apontador esquerdo -> antiga raíz
 
         // considerando que o block splittado já foi salvo no arquivo na função insertRecursive
-        newRoot->blockPointers[1] = result.second.second;
+        newRoot->blockPointers[1] = result.newBlockOffset;
         newRoot->countPointers = 2;
 
         // salvar o newRoot no arquivo da BTree
