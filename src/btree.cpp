@@ -72,8 +72,11 @@ void inline writeBackNode(Node* node, int offset, FILE* indexFile)
 void BTree::readRoot(FILE* indexFile)
 {
   rewind(indexFile);
-  BTreeHeaderReinterpret* reinterpret = (BTreeHeaderReinterpret*) &rootOffset;
-  fread(&reinterpret->block, sizeof(BTreeHeaderReinterpret), 1, indexFile);
+  fread(&rootOffset, sizeof(unsigned short), 1, indexFile);
+  //rewind(indexFile);
+
+  //BTreeHeaderReinterpret* reinterpret = (BTreeHeaderReinterpret*) &rootOffset;
+  //fread(&reinterpret->block, sizeof(BTreeHeaderReinterpret), 1, indexFile);
 }
 
 char inline relativeKeyPosition(int key, int leftMiddle, int rightMiddle)
@@ -309,10 +312,12 @@ void BTree::insert(int key, FILE* indexFile)
 std::pair<bool, int> BTree::getArticle(int key, Article_t* article, FILE* indexFile)
 {
   //leitura do root
-  readRoot(indexFile); // se for fazer a btree ficar em memória para a leitura, essa linha deve ser realocada para outro lugar
+   readRoot(indexFile); // se for fazer a btree ficar em memória para a leitura, essa linha deve ser realocada para outro lugar
+//   std::cout << "ROOT OFFSET: " << rootOffset << "\n\n";
   BTreeNodeReinterpret* reinterpretation = (BTreeNodeReinterpret*)this->root;
 
-  fseek(indexFile, sizeof(AbstractBlock_t) * rootOffset, SEEK_SET);
+
+  fseek(indexFile, sizeof(AbstractBlock_t) * 685, SEEK_SET);
   fread(&reinterpretation->block, sizeof(AbstractBlock_t), 1, indexFile);
 
 

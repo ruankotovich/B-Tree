@@ -20,9 +20,9 @@ int main(int argc, char** argv)
         if (result.first) {
             cout << a.toString();
             cout << "\n\nNumber of block read in BTree Index to find the record: " << result.second;
-            cout << "\n\nTotal number of blocks in primary index file: " << ((ftell(indexFile) / sizeof(AbstractBlock_t)) - 1);
+            cout << "\n\nTotal number of blocks in primary index file: " << ((ftell(indexFile) / sizeof(AbstractBlock_t)) - 1) << "\n";
         } else {
-            cout << "Record not found.";
+            cout << "Record not found.\n";
         }
     }
     else {
