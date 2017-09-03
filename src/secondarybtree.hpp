@@ -7,15 +7,13 @@
 #include <cstdlib>
 #include <iostream>
 
-#define SECONDARY_MAX_KEYS 12 // m = 6
+#define SECONDARY_MAX_KEYS 226 // m = 113
 #define SECONDARY_RIGHT_MIDDLE_KEY (SECONDARY_MAX_KEYS >> 1)
 #define SECONDARY_LEFT_MIDDLE_KEY (SECONDARY_RIGHT_MIDDLE_KEY - 1)
 #define SECONDARY_HALF_MAX_KEYS SECONDARY_RIGHT_MIDDLE_KEY
-#define SECONDARY_KEY_LENGTH 300
-
 
 struct SecondaryBTreeDataMap {
-  char key[SECONDARY_KEY_LENGTH];
+  unsigned long key;
   int dataPointer;
 
   bool operator< (const SecondaryBTreeDataMap& other) const;

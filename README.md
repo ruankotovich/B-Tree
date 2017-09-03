@@ -11,7 +11,6 @@
 ## 5. Qual o papel de cada função
 
 
-
 # Rascunho
 - Decidimos classificar cada par de caracteres na leitura para fazer o parsing dos registros, salvando-os num buffer para tratar os caracteres excedentes.
 - Decidimos usar hash perfeito, nos custou memória.

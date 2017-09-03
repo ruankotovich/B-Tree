@@ -32,6 +32,7 @@ void printAll(Block_t& block, FILE* indexFile, BlockDerreference* derreference)
         fseek(indexFile, sizeof(Block_t) * i, SEEK_SET);
     }
 }
+
 int main()
 {
     Block_t block;

@@ -41,7 +41,7 @@ findrec: findrec.o
 findrec.o: hashfinder.o $(SRC_PATH)/findrec.cpp
 	$(CC) -c $(SRC_PATH)/findrec.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
-upload.o: primarybtree.o hashfilefactory.o $(SRC_PATH)/upload.cpp
+upload.o: hashfilefactory.o $(SRC_PATH)/upload.cpp
 	$(CC) -c $(SRC_PATH)/upload.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
 hashfilefactory.o: iohandler.o block.o primarybtree.o secondarybtree.o $(SRC_PATH)/hashfilefactory.cpp $(INCLUDE_PATH)/hashfilefactory.hpp

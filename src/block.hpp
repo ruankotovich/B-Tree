@@ -9,6 +9,7 @@
 #define DATA_LOCATION RECORD_HEADER_SIZE //< Preset data location
 #define TAIL_LOCATION RECORD_AREA_SIZE + RECORD_TAIL_SIZE //!< Preset tail location
 #define VERIFICATION_MASK 1554243220411767901 //!< The mask used for validation
+
 /**
 * A struct to embbed and abstract an block, its head, data and tail
 */
@@ -22,6 +23,9 @@ struct Block_t {
     Block_t();
 };
 
+/**
+* A struct meaning an abstract block
+*/
 struct AbstractBlock_t {
     char data[BLOCK_SIZE];
 };

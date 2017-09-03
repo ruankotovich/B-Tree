@@ -34,6 +34,11 @@ static inline int lowerBound(T* array, int length, K value)
     return std::lower_bound(array, array + length, value) - array;
 }
 
+/**
+* Perform a binary search in the collection
+* @In : receive na array, a length and a value
+* @Out : a integer showing where the value must be placed
+*/
 template <typename T, typename K>
 static inline std::pair<bool, int> binarySearch(T* array, int length, K value)
 {
@@ -46,27 +51,32 @@ static inline std::pair<bool, int> binarySearch(T* array, int length, K value)
     return { false, position };
 }
 
+/**
+* Perform a binary search in the collection
+* @In : receive na array, a length and a value
+* @Out : a integer showing where the value must be placed
+*/
 template <typename T, typename K>
 static inline std::pair<bool, int> secondaryBinarySearch(T* array, int length, K value)
 {
     int position = upperBound(array, length, value);
-    
+
 
     if (array[position] == value) {
         return { true, position };
     }
-    
+
     return { false, position };
 }
 
 
 
-template <typename T>
 /**
 * Perform a ordered insert
 * @In : receive an array, a length and a value
 * @Out : void
 */
+template <typename T>
 static inline std::pair<bool, unsigned short> orderedInsert(T* array, unsigned short &length, T& value)
 {
   unsigned short currentSeekPosition = 0;
@@ -94,3 +104,19 @@ static inline std::pair<bool, unsigned short> orderedInsert(T* array, unsigned s
   return {true, currentSeekPosition};
 
 }
+
+/**
+* Perform a transformation of the string in a long
+* @In : receive a char array
+* @Out : a string compressed to integers
+*/
+static inline unsigned long stringNumericRepresentation(char *str)
+  {
+      unsigned long hash = 5381;
+      int c;
+
+      while ((c = *str++))
+          hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+      return hash;
+  }

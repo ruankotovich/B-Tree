@@ -29,14 +29,17 @@ void HashFileFactory::createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite) {
     currentBlock.tryPutArticle(currentArticle);
     currentBlock.validate();
 
-    std::memcpy(key.key, currentArticle.title, SECONDARY_KEY_LENGTH);
+    fseek(toWrite, currentArticle.id * sizeof(Block_t), SEEK_SET);
+    fwrite(&currentBlock, sizeof(Block_t), 1, toWrite);
+
+    // std::memcpy(key.key, currentArticle.title, SECONDARY_KEY_LENGTH);
+
+    key.key = stringNumericRepresentation(currentArticle.title);
     key.dataPointer = currentArticle.id;
 
     pBtree.insert(currentArticle.id, primaryIndexFileWrite);
     sBtree.insert(key, secondaryIndexFileWrite);
 
-    fseek(toWrite, currentArticle.id * sizeof(Block_t), SEEK_SET);
-    fwrite(&currentBlock, sizeof(Block_t), 1, toWrite);
 
     handler.parseNext();
   }

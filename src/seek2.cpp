@@ -10,7 +10,8 @@ using namespace std;
 int main(int argc, char** argv)
 {
   SecondaryBTreeDataMap searchKey;
-  std::memcpy(searchKey.key, argv[1], SECONDARY_KEY_LENGTH);
+  // std::memcpy(searchKey.key, argv[1], SECONDARY_KEY_LENGTH);
+  searchKey.key = stringNumericRepresentation(argv[1]);
 
   SecondaryBTree btree;
 
