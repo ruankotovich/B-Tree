@@ -11,8 +11,11 @@ int main(int argc, char** argv)
 {
     int id = atoi(argv[1]);
     BTree btree;
+    
     Article_t a;
     FILE* indexFile = fopen("test/primaryindex.block", "rb");
+
+    btree.readRoot(indexFile);
 
     if (indexFile != NULL) {
         auto result = btree.getArticle(id, &a, indexFile);
