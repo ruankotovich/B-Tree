@@ -312,12 +312,11 @@ void BTree::insert(int key, FILE* indexFile)
 std::pair<bool, int> BTree::getArticle(int key, Article_t* article, FILE* indexFile)
 {
   //leitura do root
-   readRoot(indexFile); // se for fazer a btree ficar em memória para a leitura, essa linha deve ser realocada para outro lugar
-//   std::cout << "ROOT OFFSET: " << rootOffset << "\n\n";
+  readRoot(indexFile); // se for fazer a btree ficar em memória para a leitura, essa linha deve ser realocada para outro lugar
   BTreeNodeReinterpret* reinterpretation = (BTreeNodeReinterpret*)this->root;
 
 
-  fseek(indexFile, sizeof(AbstractBlock_t) * 685, SEEK_SET);
+  fseek(indexFile, sizeof(AbstractBlock_t) * rootOffset, SEEK_SET);
   fread(&reinterpretation->block, sizeof(AbstractBlock_t), 1, indexFile);
 
 
