@@ -15,47 +15,52 @@
 #define HALF_MAX_KEYS RIGHT_MIDDLE_KEY
 
 struct TreeRecursionResponse {
-    bool hasBeenSplit;
-    int promotedKey;
-    unsigned short newBlockOffset;
-    TreeRecursionResponse(bool, int, unsigned short);
+  bool hasBeenSplit;
+  int promotedKey;
+  unsigned short newBlockOffset;
+  TreeRecursionResponse(bool, int, unsigned short);
 };
 
 struct Node {
-    unsigned short count;
-    unsigned short countPointers;
-    unsigned int keys[MAX_KEYS]; // 2m   -> trocar por char[300] para o Título [TROCAR]
-    unsigned short blockPointers[MAX_KEYS + 1]; // 2m + 1
+  unsigned short count;
+  unsigned short countPointers;
+  unsigned int keys[MAX_KEYS]; // 2m   -> trocar por char[300] para o Título [TROCAR]
+  unsigned short blockPointers[MAX_KEYS + 1]; // 2m + 1
 
-    Node(int order);
-    bool isLeaf();
-    bool hasRoom();
-    unsigned short insert(int key); //[TROCAR]
+  Node(int order);
+  bool isLeaf();
+  bool hasRoom();
+  unsigned short insert(int key); //[TROCAR]
 };
 
 union BTreeNodeReinterpret {
-    Node node;
-    AbstractBlock_t block;
-    BTreeNodeReinterpret()
-        : node(MAX_KEYS)
-    {
-    }
-    BTreeNodeReinterpret(BTreeNodeReinterpret* abs)
-    {
-        std::memcpy(&this->block, &abs->block, sizeof(AbstractBlock_t));
-    }
+  Node node;
+  AbstractBlock_t block;
+  BTreeNodeReinterpret()
+  : node(MAX_KEYS)
+  {
+  }
+  BTreeNodeReinterpret(BTreeNodeReinterpret* abs)
+  {
+    std::memcpy(&this->block, &abs->block, sizeof(AbstractBlock_t));
+  }
+};
+
+union BTreeHeaderReinterpret{
+  unsigned short offset;
+  AbstractBlock_t block;
 };
 
 class BTree {
 private:
-    TreeRecursionResponse SUCCESSFUL_TREE_INSERTION;
-    BTreeNodeReinterpret* root;
-    TreeRecursionResponse insertRecursive(int key, BTreeNodeReinterpret* node, int offset, FILE* indexFile);
-    void readRoot(FILE *indexFile);
+  TreeRecursionResponse SUCCESSFUL_TREE_INSERTION;
+  BTreeNodeReinterpret* root;
+  TreeRecursionResponse insertRecursive(int key, BTreeNodeReinterpret* node, int offset, FILE* indexFile);
+  void readRoot(FILE *indexFile);
 public:
-    void insert(int key, FILE* indexFile);
-    std::pair<bool, int> getArticle(int key, Article_t*, FILE*);
-    void buildIndex(FILE*);
-    unsigned short rootOffset;
-    BTree();
+  void insert(int key, FILE* indexFile);
+  std::pair<bool, int> getArticle(int key, Article_t*, FILE*);
+  void buildIndex(FILE*);
+  unsigned short rootOffset;
+  BTree();
 };
