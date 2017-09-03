@@ -1,5 +1,5 @@
 #include "hashfilefactory.hpp"
-#include "btree.hpp"
+#include "primarybtree.hpp"
 #include <cstdlib>
 #include <iostream>
 

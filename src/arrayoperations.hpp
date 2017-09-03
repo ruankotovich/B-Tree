@@ -1,5 +1,10 @@
 #include <algorithm>
 #include <iostream>
+
+#define RELATIVE_LEFT -1
+#define RELATIVE_MIDDLE 0
+#define RELATIVE_RIGHT 1
+
 /**
 * Perform a binary search on the array
 * @In : receive na array, a length and a value

@@ -9,7 +9,7 @@ void HashFileFactory::createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite) {
   IOHandler handler(toRead);
 
   FILE* indexFileWrite = fopen("test/primaryindex.block", "wb+");
-  BTree btree;
+  PrimaryBTree btree;
   btree.buildIndex(indexFileWrite);
 
   this->hashSize = handler.getBiggestId();

@@ -1,9 +1,9 @@
-#include "btree.hpp"
+#include "primarybtree.hpp"
 #include <iostream>
 
 union BlockDerreference {
     Block_t block;
-    Node node;
+    PrimaryBTreeNode node;
 };
 
 void printAll(Block_t& block, FILE* indexFile, BlockDerreference* derreference)

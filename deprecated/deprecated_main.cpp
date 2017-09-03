@@ -1,11 +1,11 @@
-#include "btree.hpp"
+#include "primarybtree.hpp"
 #include <iostream>
 
 using namespace std;
 
 int main()
 {
-    BTree btree;
+    PrimaryBTree btree;
     FILE* indexFileWrite = fopen("test/primaryindex.block", "wb");
     FILE* indexFileRead = fopen("test/primaryindex.block", "rb");
     btree.buildIndex(indexFileWrite);
