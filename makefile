@@ -6,7 +6,7 @@ CFLAGS=-std=c++11 -g -Wall
 INCLUDE_PATH=src
 SRC_PATH=src
 
-all: upload findrec seek1 seek2 clean
+all: upload findrec seek1 seek2 debug clean
 
 seek1: seek1.o
 	$(CC) -o seek1 iohandler.o seek1.o primarybtree.o article.o block.o hashfinder.o $(CFLAGS)
@@ -15,7 +15,7 @@ seek2: seek2.o
 	$(CC) -o seek2 iohandler.o seek2.o secondarybtree.o article.o block.o hashfinder.o $(CFLAGS)
 
 debug: debug.o
-	$(CC) -o debug iohandler.o debug.o primarybtree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
+	$(CC) -o debug iohandler.o debug.o secondarybtree.o article.o block.o hashfinder.o $(CFLAGS)
 
 main: main.o
 	$(CC) -o main iohandler.o main.o primarybtree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
@@ -23,7 +23,7 @@ main: main.o
 main.o: primarybtree.o $(SRC_PATH)/main.cpp
 	$(CC) -c $(SRC_PATH)/main.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
-debug.o: primarybtree.o $(SRC_PATH)/debug.cpp
+debug.o: secondarybtree.o $(SRC_PATH)/debug.cpp
 	$(CC) -c $(SRC_PATH)/debug.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
 seek1.o: primarybtree.o $(SRC_PATH)/seek1.cpp

@@ -42,8 +42,24 @@ static inline std::pair<bool, int> binarySearch(T* array, int length, K value)
     if (array[position] == value) {
         return { true, position };
     }
+
     return { false, position };
 }
+
+template <typename T, typename K>
+static inline std::pair<bool, int> secondaryBinarySearch(T* array, int length, K value)
+{
+    int position = upperBound(array, length, value);
+    
+
+    if (array[position] == value) {
+        return { true, position };
+    }
+    
+    return { false, position };
+}
+
+
 
 template <typename T>
 /**
@@ -51,15 +67,30 @@ template <typename T>
 * @In : receive an array, a length and a value
 * @Out : void
 */
-static inline void orderedInsert(T* array, int length, T value)
+static inline std::pair<bool, unsigned short> orderedInsert(T* array, unsigned short &length, T& value)
 {
-    int curIndex = 0;
-    while (array[++curIndex] < value)
-        ;
-    --curIndex;
+  unsigned short currentSeekPosition = 0;
 
-    while (array[--length] > curIndex) {
-        array[length + 1] = array[length];
+  while(currentSeekPosition < length){
+    if(array[currentSeekPosition] < value){
+      currentSeekPosition++;
+      continue;
     }
-    array[curIndex] = value;
+    break;
+  }
+
+  if(currentSeekPosition < length){
+    if(array[currentSeekPosition] == value){
+      return {false, 0};
+    }
+  }
+
+  for(int i=length; i > currentSeekPosition; --i){
+    array[i] = array[i-1];
+  }
+
+  array[currentSeekPosition] = value;
+  ++length;
+  return {true, currentSeekPosition};
+
 }

@@ -320,24 +320,24 @@ std::pair<bool, int> PrimaryBTree::getArticle(int key, Article_t* article, FILE*
     PrimaryBTreeNodeReinterpret* reinterpretation = (PrimaryBTreeNodeReinterpret*)this->root;
 
     if (reinterpretation->node.count <= 0) {
-        std::cout << "Not Found" << '\n';
+        //std::cout << "Not Found" << '\n';
         return { false, 0 };
     }
 
     auto currentPointer = binarySearch(reinterpretation->node.keys, reinterpretation->node.count, key);
-    std::cout << "Searching for key " << key << " at the root(" << this->rootOffset << ")\n";
+    //std::cout << "Searching for key " << key << " at the root(" << this->rootOffset << ")\n";
 
     int countTraversed = 1;
 
     while (!currentPointer.first) {
         if (reinterpretation->node.isLeaf()) {
-            std::cout << "Not Found" << '\n';
+            //std::cout << "Not Found" << '\n';
             return { false, 0 };
         }
-        std::cout << "It was supposed to be in this position in the block : " << currentPointer.second << '\n';
+        //std::cout << "It was supposed to be in this position in the block : " << currentPointer.second << '\n';
         unsigned short toSeek = currentPointer.second >= reinterpretation->node.count ? reinterpretation->node.blockPointers[reinterpretation->node.count] : (key < reinterpretation->node.keys[currentPointer.second] ? reinterpretation->node.blockPointers[currentPointer.second] : reinterpretation->node.blockPointers[currentPointer.second + 1]);
         // std::cout << "Seeking between " << reinterpretation->node.blockPointers[currentPointer.second] << " and " << reinterpretation->node.blockPointers[currentPointer.second + 1] << '\n';
-        std::cout << "New block to search : " << toSeek << "\n\n";
+        //std::cout << "New block to search : " << toSeek << "\n\n";
 
         fseek(indexFile, sizeof(AbstractBlock_t) * toSeek, SEEK_SET);
         fread(&reinterpretation->block, sizeof(AbstractBlock_t), 1, indexFile);
@@ -346,7 +346,7 @@ std::pair<bool, int> PrimaryBTree::getArticle(int key, Article_t* article, FILE*
         ++countTraversed;
     }
 
-    std::cout << "Found at the position " << currentPointer.second << '\n';
+    //std::cout << "Found at the position " << currentPointer.second << '\n';
 
     FILE* blockFile = fopen("./data.block", "rb+");
     if (blockFile != NULL) {

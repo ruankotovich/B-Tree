@@ -1,9 +1,9 @@
-#include "primarybtree.hpp"
+#include "secondarybtree.hpp"
 #include <iostream>
 
 union BlockDerreference {
     Block_t block;
-    PrimaryBTreeNode node;
+    SecondaryBTreeNode node;
 };
 
 void printAll(Block_t& block, FILE* indexFile, BlockDerreference* derreference)
@@ -16,7 +16,7 @@ void printAll(Block_t& block, FILE* indexFile, BlockDerreference* derreference)
         std::cout << "Key Count : " << derreference->node.count << "\n";
         std::cout << "Keys : {";
         for (int j = 0; j < derreference->node.count; ++j) {
-            std::cout << derreference->node.keys[j] << ',';
+            std::cout << derreference->node.keys[j].key << ',';
         }
         std::cout << "}\n";
         std::cout << "Pointer Count : " << derreference->node.countPointers << "\n";
@@ -37,7 +37,7 @@ int main()
     Block_t block;
     BlockDerreference* derreference;
     derreference = (BlockDerreference*)&block;
-    FILE* indexFile = fopen("test/primaryindex.block", "rb");
+    FILE* indexFile = fopen("test/secondaryindex.block", "rb");
 
     int toRead;
     std::cout << "\n >> ";
@@ -55,7 +55,7 @@ int main()
             std::cout << "Key Count : " << derreference->node.count << "\n";
             std::cout << "Keys : {";
             for (int j = 0; j < derreference->node.count; ++j) {
-                std::cout << derreference->node.keys[j] << ',';
+                std::cout << derreference->node.keys[j].key << ',';
             }
             std::cout << "}\n";
             std::cout << "Pointer Count : " << derreference->node.countPointers << "\n";
