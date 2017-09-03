@@ -1,6 +1,7 @@
 #pragma once
 #include "block.hpp"
 #include "primarybtree.hpp"
+#include "secondarybtree.hpp"
 #include "iohandler.hpp"
 #include <cstdlib>
 #include <cstdio>

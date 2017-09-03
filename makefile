@@ -6,11 +6,13 @@ CFLAGS=-std=c++11 -g -Wall
 INCLUDE_PATH=src
 SRC_PATH=src
 
-all: upload findrec seek1 seek2 debug clean
+all: upload findrec seek1 seek2 clean
 
 seek1: seek1.o
-	$(CC) -o seek1 iohandler.o seek1.o primarybtree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
-seek2:
+	$(CC) -o seek1 iohandler.o seek1.o primarybtree.o article.o block.o hashfinder.o $(CFLAGS)
+
+seek2: seek2.o
+	$(CC) -o seek2 iohandler.o seek2.o secondarybtree.o article.o block.o hashfinder.o $(CFLAGS)
 
 debug: debug.o
 	$(CC) -o debug iohandler.o debug.o primarybtree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
@@ -27,8 +29,11 @@ debug.o: primarybtree.o $(SRC_PATH)/debug.cpp
 seek1.o: primarybtree.o $(SRC_PATH)/seek1.cpp
 	$(CC) -c $(SRC_PATH)/seek1.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
+seek2.o: secondarybtree.o $(SRC_PATH)/seek2.cpp
+	$(CC) -c $(SRC_PATH)/seek2.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
+
 upload: upload.o
-	$(CC) -o upload iohandler.o upload.o primarybtree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
+	$(CC) -o upload iohandler.o upload.o secondarybtree.o primarybtree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
 
 findrec: findrec.o
 	$(CC) -o findrec iohandler.o findrec.o article.o block.o hashfinder.o $(CFLAGS)
@@ -39,7 +44,7 @@ findrec.o: hashfinder.o $(SRC_PATH)/findrec.cpp
 upload.o: primarybtree.o hashfilefactory.o $(SRC_PATH)/upload.cpp
 	$(CC) -c $(SRC_PATH)/upload.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
-hashfilefactory.o: iohandler.o block.o $(SRC_PATH)/hashfilefactory.cpp $(INCLUDE_PATH)/hashfilefactory.hpp
+hashfilefactory.o: iohandler.o block.o primarybtree.o secondarybtree.o $(SRC_PATH)/hashfilefactory.cpp $(INCLUDE_PATH)/hashfilefactory.hpp
 	$(CC) -c $(SRC_PATH)/hashfilefactory.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
 hashfinder.o: block.o article.o $(SRC_PATH)/hashfinder.cpp $(INCLUDE_PATH)/hashfinder.hpp

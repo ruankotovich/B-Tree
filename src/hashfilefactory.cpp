@@ -8,13 +8,20 @@
 void HashFileFactory::createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite) {
   IOHandler handler(toRead);
 
-  FILE* indexFileWrite = fopen("test/primaryindex.block", "wb+");
-  PrimaryBTree btree;
-  btree.buildIndex(indexFileWrite);
+  FILE* primaryIndexFileWrite = fopen("test/primaryindex.block", "wb+");
+  FILE* secondaryIndexFileWrite = fopen("test/secondaryindex.block", "wb+");
+
+
+  PrimaryBTree pBtree;
+  SecondaryBTree sBtree;
+
+  pBtree.buildIndex(primaryIndexFileWrite);
+  sBtree.buildIndex(secondaryIndexFileWrite);
 
   this->hashSize = handler.getBiggestId();
 
   Article_t currentArticle;
+  SecondaryBTreeDataMap key;
 
   while (handler.hasNext()) {
     handler >> currentArticle;
@@ -22,7 +29,11 @@ void HashFileFactory::createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite) {
     currentBlock.tryPutArticle(currentArticle);
     currentBlock.validate();
 
-    btree.insert(currentArticle.id, indexFileWrite);
+    std::memcpy(key.key, currentArticle.title, SECONDARY_KEY_LENGTH);
+    key.dataPointer = currentArticle.id;
+
+    pBtree.insert(currentArticle.id, primaryIndexFileWrite);
+    sBtree.insert(key, secondaryIndexFileWrite);
 
     fseek(toWrite, currentArticle.id * sizeof(Block_t), SEEK_SET);
     fwrite(&currentBlock, sizeof(Block_t), 1, toWrite);
