@@ -1,7 +1,7 @@
 #pragma once
 #include "arrayoperations.hpp"
 #include "block.hpp"
-#include "hashfilefactory.hpp"
+#include "hashfinder.hpp"
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -9,7 +9,7 @@
 #define RELATIVE_MIDDLE 0
 #define RELATIVE_RIGHT 1
 
-#define MAX_KEYS 4 // m = 340
+#define MAX_KEYS 680 // m = 340
 #define RIGHT_MIDDLE_KEY (MAX_KEYS >> 1)
 #define LEFT_MIDDLE_KEY (RIGHT_MIDDLE_KEY - 1)
 #define HALF_MAX_KEYS RIGHT_MIDDLE_KEY
@@ -50,10 +50,9 @@ class BTree {
 private:
     TreeRecursionResponse SUCCESSFUL_TREE_INSERTION;
     BTreeNodeReinterpret* root;
-    TreeRecursionResponse insertRecursive(int key, BTreeNodeReinterpret* node, int offset, FILE* indexFileWrite, FILE* indexFileRead);
-
+    TreeRecursionResponse insertRecursive(int key, BTreeNodeReinterpret* node, int offset, FILE* indexFile);
 public:
-    void insert(int key, FILE* indexFileWrite, FILE* indexFileRead);
+    void insert(int key, FILE* indexFile);
     bool getArticle(int key, Article_t*, FILE*);
     void buildIndex(FILE*);
     unsigned short rootOffset;

@@ -6,40 +6,43 @@ CFLAGS=-std=c++11 -g -Wall
 INCLUDE_PATH=src
 SRC_PATH=src
 
-all: upload findrec seek1 seek2 main debug clean
+all: upload findrec seek1 seek2 debug clean
 
 seek1:
 
 seek2:
 
 debug: debug.o
-	$(CC) -o debug iohandler.o debug.o btree.o article.o block.o hashfilefactory.o $(CFLAGS)
+	$(CC) -o debug iohandler.o debug.o btree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
 
 main: main.o
-	$(CC) -o main iohandler.o main.o btree.o article.o block.o hashfilefactory.o $(CFLAGS)
+	$(CC) -o main iohandler.o main.o btree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
 
 main.o: btree.o $(SRC_PATH)/main.cpp
 	$(CC) -c $(SRC_PATH)/main.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
-	
+
 debug.o: btree.o $(SRC_PATH)/debug.cpp
 	$(CC) -c $(SRC_PATH)/debug.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
-upload: upload.o  
-	$(CC) -o upload iohandler.o upload.o btree.o article.o block.o hashfilefactory.o $(CFLAGS)
+upload: upload.o
+	$(CC) -o upload iohandler.o upload.o btree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
 
-findrec:findrec.o
-	$(CC) -o findrec iohandler.o findrec.o article.o block.o hashfilefactory.o $(CFLAGS)
+findrec: findrec.o
+	$(CC) -o findrec iohandler.o findrec.o article.o block.o hashfinder.o $(CFLAGS)
 
-findrec.o: hashfilefactory.o $(SRC_PATH)/findrec.cpp
+findrec.o: hashfinder.o $(SRC_PATH)/findrec.cpp
 	$(CC) -c $(SRC_PATH)/findrec.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
-upload.o: btree.o $(SRC_PATH)/upload.cpp
+upload.o: btree.o hashfilefactory.o $(SRC_PATH)/upload.cpp
 	$(CC) -c $(SRC_PATH)/upload.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
 hashfilefactory.o: iohandler.o block.o $(SRC_PATH)/hashfilefactory.cpp $(INCLUDE_PATH)/hashfilefactory.hpp
 	$(CC) -c $(SRC_PATH)/hashfilefactory.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
-btree.o: hashfilefactory.o $(SRC_PATH)/btree.cpp $(INCLUDE_PATH)/btree.hpp
+hashfinder.o: block.o article.o $(SRC_PATH)/hashfinder.cpp $(INCLUDE_PATH)/hashfinder.hpp
+	$(CC) -c $(SRC_PATH)/hashfinder.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
+
+btree.o: hashfinder.o $(SRC_PATH)/btree.cpp $(INCLUDE_PATH)/btree.hpp
 	$(CC) -c $(SRC_PATH)/btree.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
 iohandler.o: article.o $(SRC_PATH)/iohandler.cpp $(INCLUDE_PATH)/iohandler.hpp
