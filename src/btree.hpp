@@ -51,9 +51,10 @@ private:
     TreeRecursionResponse SUCCESSFUL_TREE_INSERTION;
     BTreeNodeReinterpret* root;
     TreeRecursionResponse insertRecursive(int key, BTreeNodeReinterpret* node, int offset, FILE* indexFile);
+    void readRoot(FILE *indexFile);
 public:
     void insert(int key, FILE* indexFile);
-    bool getArticle(int key, Article_t*, FILE*);
+    std::pair<bool, int> getArticle(int key, Article_t*, FILE*);
     void buildIndex(FILE*);
     unsigned short rootOffset;
     BTree();

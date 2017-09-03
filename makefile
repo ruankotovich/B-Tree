@@ -8,8 +8,8 @@ SRC_PATH=src
 
 all: upload findrec seek1 seek2 debug clean
 
-seek1:
-
+seek1: seek1.o
+	$(CC) -o seek1 iohandler.o seek1.o btree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
 seek2:
 
 debug: debug.o
@@ -23,6 +23,9 @@ main.o: btree.o $(SRC_PATH)/main.cpp
 
 debug.o: btree.o $(SRC_PATH)/debug.cpp
 	$(CC) -c $(SRC_PATH)/debug.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
+
+seek1.o: btree.o $(SRC_PATH)/seek1.cpp
+	$(CC) -c $(SRC_PATH)/seek1.cpp -I/$(INCLUDE_PATH) $(CFLAGS)
 
 upload: upload.o
 	$(CC) -o upload iohandler.o upload.o btree.o article.o block.o hashfilefactory.o hashfinder.o $(CFLAGS)
