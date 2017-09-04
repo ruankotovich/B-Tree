@@ -7,13 +7,15 @@
 #include <cstdlib>
 #include <iostream>
 
-#define SECONDARY_MAX_KEYS 12 // m = 6
-#define SECONDARY_RIGHT_MIDDLE_KEY (SECONDARY_MAX_KEYS >> 1)
-#define SECONDARY_LEFT_MIDDLE_KEY (SECONDARY_RIGHT_MIDDLE_KEY - 1)
-#define SECONDARY_HALF_MAX_KEYS SECONDARY_RIGHT_MIDDLE_KEY
-#define SECONDARY_KEY_LENGTH 300
+#define SECONDARY_MAX_KEYS 12 //!< Max keys count
+#define SECONDARY_RIGHT_MIDDLE_KEY (SECONDARY_MAX_KEYS >> 1) //!< The position of the middle key
+#define SECONDARY_LEFT_MIDDLE_KEY (SECONDARY_RIGHT_MIDDLE_KEY - 1) //!< The block pointers count
+#define SECONDARY_HALF_MAX_KEYS SECONDARY_RIGHT_MIDDLE_KEY //!< The half count of the maxium keys count
+#define SECONDARY_KEY_LENGTH 300 //!< The size of the key
 
-
+/**
+* A struct used for abstract the keymap and the data block
+*/
 struct SecondaryBTreeDataMap {
   char key[SECONDARY_KEY_LENGTH];
   int dataPointer;
@@ -24,6 +26,9 @@ struct SecondaryBTreeDataMap {
   void operator=(const SecondaryBTreeDataMap& other);
 };
 
+/**
+* A struct used for save the response of the recursive insertion method
+*/
 struct SecondaryBTreeRecursionResponse {
   bool hasBeenSplit;
   SecondaryBTreeDataMap promotedKey;
@@ -32,6 +37,9 @@ struct SecondaryBTreeRecursionResponse {
   SecondaryBTreeRecursionResponse(bool, SecondaryBTreeDataMap&, int);
 };
 
+/**
+* A struct used for abstract the concept of node
+*/
 struct SecondaryBTreeNode {
   unsigned short count;
   unsigned short countPointers;
@@ -44,6 +52,9 @@ struct SecondaryBTreeNode {
   int insert(SecondaryBTreeDataMap&); //[TROCAR]
 };
 
+/**
+* An union used to represent an interpretation of the node regardins blocks
+*/
 union SecondaryBTreeNodeReinterpret {
   SecondaryBTreeNode node;
   AbstractBlock_t block;
@@ -58,11 +69,17 @@ union SecondaryBTreeNodeReinterpret {
   }
 };
 
+/**
+* An union used to represent an interpretation of the header regardins blocks
+*/
 union SecondaryBTreeHeaderReinterpret{
   int offset;
   AbstractBlock_t block;
 };
 
+/**
+* A class abstracting the btree
+*/
 class SecondaryBTree {
 private:
   SecondaryBTreeRecursionResponse SUCCESSFUL_TREE_INSERTION;

@@ -1,4 +1,8 @@
 #include "secondarybtree.hpp"
+
+/**
+* Build a recursion response from the core
+*/
 SecondaryBTreeRecursionResponse::SecondaryBTreeRecursionResponse(bool _hasBeenSplit, SecondaryBTreeDataMap& _promotedKey, int _newBlockOffset)
     : hasBeenSplit(_hasBeenSplit)
     , newBlockOffset(_newBlockOffset)
@@ -6,11 +10,17 @@ SecondaryBTreeRecursionResponse::SecondaryBTreeRecursionResponse(bool _hasBeenSp
     promotedKey = _promotedKey;
 }
 
+/**
+* Build a recursion response from the core
+*/
 SecondaryBTreeRecursionResponse::SecondaryBTreeRecursionResponse(bool _hasBeenSplit)
     : hasBeenSplit(_hasBeenSplit)
 {
 }
 
+/**
+* PrimaryBTreeNode constructor
+*/
 SecondaryBTreeNode::SecondaryBTreeNode(int order)
 {
     count = 0;
@@ -38,11 +48,18 @@ bool SecondaryBTreeDataMap::operator>(const SecondaryBTreeDataMap& other) const
     return strcmp(this->key, other.key) > 0;
 }
 
+
+/**
+* Verify if a node is a leaf
+*/
 bool SecondaryBTreeNode::isLeaf()
 {
     return countPointers == 0;
 }
 
+/**
+* Verify if a node has room to insert new nodes
+*/
 bool SecondaryBTreeNode::hasRoom()
 {
     return count < SECONDARY_MAX_KEYS;
@@ -73,6 +90,9 @@ int SecondaryBTreeNode::insert(SecondaryBTreeDataMap& key)
     return i;
 }
 
+/**
+* PrimaryBTree constructor
+*/
 SecondaryBTree::SecondaryBTree()
     : SUCCESSFUL_TREE_INSERTION(false)
 {
@@ -80,6 +100,9 @@ SecondaryBTree::SecondaryBTree()
     rootOffset = 1;
 }
 
+/**
+* Build the PrimaryBTree index, writing a new root and its offset
+*/
 void SecondaryBTree::buildIndex(FILE* indexFile)
 {
     rewind(indexFile);
@@ -89,12 +112,18 @@ void SecondaryBTree::buildIndex(FILE* indexFile)
     fwrite(root, sizeof(AbstractBlock_t), 1, indexFile);
 }
 
+/**
+* Write a node back into the file
+*/
 void inline writeBackNode(SecondaryBTreeNode* node, int offset, FILE* indexFile)
 {
     fseek(indexFile, sizeof(AbstractBlock_t) * offset, SEEK_SET);
     fwrite(node, sizeof(AbstractBlock_t), 1, indexFile);
 }
 
+/**
+* Read the root whence the offset is set
+*/
 void SecondaryBTree::readRoot(FILE* indexFile)
 {
     rewind(indexFile);
@@ -106,6 +135,9 @@ void SecondaryBTree::readRoot(FILE* indexFile)
     fread(&reinterpretation->block, sizeof(AbstractBlock_t), 1, indexFile);
 }
 
+/**
+* Returns the relative key position based on the extremes
+*/
 char inline relativeKeyPosition(SecondaryBTreeDataMap& key, SecondaryBTreeDataMap& leftMiddle, SecondaryBTreeDataMap& rightMiddle)
 {
     if (key < leftMiddle) {
@@ -117,6 +149,9 @@ char inline relativeKeyPosition(SecondaryBTreeDataMap& key, SecondaryBTreeDataMa
     return RELATIVE_MIDDLE;
 }
 
+/**
+* Write a new node
+*/
 int inline writeNewNode(SecondaryBTreeNode* node, FILE* indexFile)
 {
     fseek(indexFile, 0, SEEK_END);
@@ -125,6 +160,9 @@ int inline writeNewNode(SecondaryBTreeNode* node, FILE* indexFile)
     return (ftell(indexFile) / sizeof(AbstractBlock_t)) - 1;
 }
 
+/**
+* Auxiliar function of the method `insert`, backtracking the bellow insertions
+*/
 SecondaryBTreeRecursionResponse SecondaryBTree::insertRecursive(SecondaryBTreeDataMap& key, SecondaryBTreeNodeReinterpret* nodeReinterpretation, int offset, FILE* indexFile)
 {
     for (unsigned short i = 0; i < nodeReinterpretation->node.count; ++i) {
@@ -210,8 +248,6 @@ SecondaryBTreeRecursionResponse SecondaryBTree::insertRecursive(SecondaryBTreeDa
 
     auto resultRecursion = insertRecursive(key, retrieveNode, childNodeOffset, indexFile);
     delete retrieveNode;
-
-    // WARNING: FALTA RESOLVER A QUESTÃO DE DELEÇÃO DOS PONTEIROS PARA NODE NAS CHAMADAS RECURSIVAS
 
     if (resultRecursion.hasBeenSplit) { // caso em que veio um valor promovido e um blockPointer
         //caso 1 - tem espaço para inserir o promovido
@@ -313,6 +349,9 @@ SecondaryBTreeRecursionResponse SecondaryBTree::insertRecursive(SecondaryBTreeDa
     // return { false, { 0, 0 } };*/
 }
 
+/**
+* Insert a key in the tree
+*/
 void SecondaryBTree::insert(SecondaryBTreeDataMap& key, FILE* indexFile)
 { // [TROCAR]
     auto result = insertRecursive(key, root, rootOffset, indexFile);
@@ -341,6 +380,9 @@ void SecondaryBTree::insert(SecondaryBTreeDataMap& key, FILE* indexFile)
     }
 }
 
+/**
+* Get an article from the tree
+*/
 std::pair<bool, int> SecondaryBTree::getArticle(SecondaryBTreeDataMap& key, Article_t* article, FILE* indexFile)
 {
 

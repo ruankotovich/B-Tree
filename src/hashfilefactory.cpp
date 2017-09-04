@@ -41,7 +41,3 @@ void HashFileFactory::createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite) {
     handler.parseNext();
   }
 }
-
-/**
-* Attemp to read an article receiving the ID, a callback variable and a file whence fields will be read
-*/

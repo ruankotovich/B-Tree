@@ -1,4 +1,8 @@
 #include "primarybtree.hpp"
+
+/**
+* Build a recursion response from the core
+*/
 PrimaryBTreeRecursionResponse::PrimaryBTreeRecursionResponse(bool _hasBeenSplit, int _promotedKey, unsigned short _newBlockOffset)
     : hasBeenSplit(_hasBeenSplit)
     , promotedKey(_promotedKey)
@@ -6,17 +10,26 @@ PrimaryBTreeRecursionResponse::PrimaryBTreeRecursionResponse(bool _hasBeenSplit,
 {
 }
 
+/**
+* PrimaryBTreeNode constructor
+*/
 PrimaryBTreeNode::PrimaryBTreeNode(int order)
 {
     count = 0;
     countPointers = 0;
 }
 
+/**
+* Verify if a node is a leaf
+*/
 bool PrimaryBTreeNode::isLeaf()
 {
     return countPointers == 0;
 }
 
+/**
+* Verify if a node has room to insert new nodes
+*/
 bool PrimaryBTreeNode::hasRoom()
 {
     return count < PRIMARY_MAX_KEYS;
@@ -47,6 +60,9 @@ unsigned short PrimaryBTreeNode::insert(int key)
     return i;
 }
 
+/**
+* PrimaryBTree constructor
+*/
 PrimaryBTree::PrimaryBTree()
     : SUCCESSFUL_TREE_INSERTION(false, 0, 0)
 {
@@ -54,6 +70,10 @@ PrimaryBTree::PrimaryBTree()
     rootOffset = 1;
 }
 
+
+/**
+* Build the PrimaryBTree index, writing a new root and its offset
+*/
 void PrimaryBTree::buildIndex(FILE* indexFile)
 {
     rewind(indexFile);
@@ -63,12 +83,18 @@ void PrimaryBTree::buildIndex(FILE* indexFile)
     fwrite(root, sizeof(AbstractBlock_t), 1, indexFile);
 }
 
+/**
+* Write a node back into the file
+*/
 void inline writeBackNode(PrimaryBTreeNode* node, int offset, FILE* indexFile)
 {
     fseek(indexFile, sizeof(AbstractBlock_t) * offset, SEEK_SET);
     fwrite(node, sizeof(AbstractBlock_t), 1, indexFile);
 }
 
+/**
+* Read the root whence the offset is set
+*/
 void PrimaryBTree::readRoot(FILE* indexFile)
 {
     rewind(indexFile);
@@ -78,12 +104,11 @@ void PrimaryBTree::readRoot(FILE* indexFile)
 
     fseek(indexFile, sizeof(AbstractBlock_t) * rootOffset, SEEK_SET);
     fread(&reinterpretation->block, sizeof(AbstractBlock_t), 1, indexFile);
-    //rewind(indexFile);
-
-    //PrimaryBTreeHeaderReinterpret* reinterpret = (PrimaryBTreeHeaderReinterpret*) &rootOffset;
-    //fread(&reinterpret->block, sizeof(PrimaryBTreeHeaderReinterpret), 1, indexFile);
 }
 
+/**
+* Returns the relative key position based on the extremes
+*/
 char inline relativeKeyPosition(int key, int leftMiddle, int rightMiddle)
 {
     if (key < leftMiddle) {
@@ -95,6 +120,9 @@ char inline relativeKeyPosition(int key, int leftMiddle, int rightMiddle)
     return RELATIVE_MIDDLE;
 }
 
+/**
+* Write a new node
+*/
 int inline writeNewNode(PrimaryBTreeNode* node, FILE* indexFile)
 {
     fseek(indexFile, 0, SEEK_END);
@@ -103,6 +131,10 @@ int inline writeNewNode(PrimaryBTreeNode* node, FILE* indexFile)
     return (ftell(indexFile) / sizeof(AbstractBlock_t)) - 1;
 }
 
+
+/**
+* Auxiliar function of the method `insert`, backtracking the bellow insertions
+*/
 PrimaryBTreeRecursionResponse PrimaryBTree::insertRecursive(int key, PrimaryBTreeNodeReinterpret* nodeReinterpretation, int offset, FILE* indexFile)
 {
     if (nodeReinterpretation->node.isLeaf()) {
@@ -183,8 +215,6 @@ PrimaryBTreeRecursionResponse PrimaryBTree::insertRecursive(int key, PrimaryBTre
 
     auto resultRecursion = insertRecursive(key, retrieveNode, childNodeOffset, indexFile);
     delete retrieveNode;
-
-    // WARNING: FALTA RESOLVER A QUESTÃO DE DELEÇÃO DOS PONTEIROS PARA NODE NAS CHAMADAS RECURSIVAS
 
     if (resultRecursion.hasBeenSplit) { // caso em que veio um valor promovido e um blockPointer
         //caso 1 - tem espaço para inserir o promovido
@@ -286,6 +316,9 @@ PrimaryBTreeRecursionResponse PrimaryBTree::insertRecursive(int key, PrimaryBTre
     // return { false, { 0, 0 } };
 }
 
+/**
+* Insert a key in the tree
+*/
 void PrimaryBTree::insert(int key, FILE* indexFile)
 { // [TROCAR]
     auto result = insertRecursive(key, root, rootOffset, indexFile);
@@ -314,6 +347,10 @@ void PrimaryBTree::insert(int key, FILE* indexFile)
     }
 }
 
+
+/**
+* Get an article from the tree
+*/
 std::pair<bool, int> PrimaryBTree::getArticle(int key, Article_t* article, FILE* indexFile)
 {
 

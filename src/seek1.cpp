@@ -9,7 +9,9 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    int id = atoi(argv[1]);
+    int id;
+    
+    if(argc>1){ id = atoi(argv[1]);}else{std::cin >> id;}
     PrimaryBTree btree;
     
     Article_t a;

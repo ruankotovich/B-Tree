@@ -70,6 +70,39 @@ O arquivo de índice secundário se assemelha bastante com o arquivo de índice 
 
 Um detalhe importante dessa implementação é que, devido ao enorme tamanho da chave de busca, só foi possível armazenar poucos elementos por nó, consequentemente existirão mais nós para serem representados, sugerindo uma mudança no tamanho da variável que armazena o ponteiro para blocos, sendo essa no índice primário um `unsigned short` e no índice secundário um `int`, justamente para comportar o número gigantesco de blocos.
 
+A indexação conta com duas estruturas principais utilizadas para representar um nó : 
+
+```
+struct SecondaryBTreeNode {
+  unsigned short count;
+  unsigned short countPointers;
+  SecondaryBTreeDataMap keys[SECONDARY_MAX_KEYS];por char[SECONDARY_KEY_LENGTH] para o Título [TROCAR]
+  int blockPointers[SECONDARY_MAX_KEYS + 1];
+
+  SecondaryBTreeNode(int order);
+  bool isLeaf();
+  bool hasRoom();
+  int insert(SecondaryBTreeDataMap&);
+};
+
+```
+
+```
+struct SecondaryBTreeDataMap {
+  char key[SECONDARY_KEY_LENGTH];
+  int dataPointer;
+
+  bool operator< (const SecondaryBTreeDataMap& other) const;
+  bool operator> (const SecondaryBTreeDataMap& other) const;
+  bool operator==(const SecondaryBTreeDataMap& other) const;
+  void operator=(const SecondaryBTreeDataMap& other);
+};
+```
+
+Tais structs representam um bloco e seus devidos campos, abaixo é possível averiguar a estrutura do nó em um bloco abaixo : 
+
+![](gfx/sindex.png)
+
 ---
 
 ### 2. Dependência de Fontes
@@ -81,6 +114,56 @@ Um detalhe importante dessa implementação é que, devido ao enorme tamanho da 
 ---
 
 ### 4. Quem desenvolveu cada fonte/função
+
+---
+
+### 5. Execução
+
+#### Documentação
+
+Foi utilizada a ferramenta `doxygen` para a documentação do código fonte, sendo tal software necessário se desejar gerar a documentação. Além disso, foi utilizada a ferramenta auxiliar `moxygen` para converter os formatos gerados do `doxygen` para `markdown`.
+
+**`tl;dr`** :  foram utilizadas as ferramentas `doxygen` e `moxygen`.
+
+#### Compilação
+
+Para a compilação, basta executar o comando `make` na pasta raiz do projeto, serão gerados quatro executáveis : `upload`,`findrec`,`seek1` e `seek1`.
+
+#### Execução
+
+Os arquivos possuem duas maneiras de entrada (exceto o arquivo `upload`), recebem parâmetros ou da entrada `char *argv[]` ou da própria stream de entrada `cin`, eis alguns exemplos : 
+
+```
+[Via ARGV]
+
+./seek1 123
+```
+
+```
+[Via CIN]
+./seek1
+
+> 123
+
+```
+
+
+```
+[Via ARGV]
+(pelo argv, deve ser executado passando a string desejada entre aspas)
+
+./seek2 "ICAN : efficiently calculate active node set from searches"
+
+```
+
+
+```
+[Via CIN]
+./seek2
+
+> ICAN : efficiently calculate active node set from searches
+
+```
 
 ---
 

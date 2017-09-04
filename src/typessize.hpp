@@ -1,6 +1,6 @@
 #pragma once
-
 #include <cstdlib>
+
 #define BYTE unsigned char //!< Binding for unsigned char
 #define BYTE_BITS 8 //!< Byte size in bits
 #define SHORT_SIZE sizeof(short) //!< Short size in bytes

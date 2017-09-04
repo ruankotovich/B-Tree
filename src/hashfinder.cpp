@@ -1,5 +1,9 @@
 #include "hashfinder.hpp"
 
+
+/**
+* Retrieves and return an article from the file using the id
+*/
 bool getArticleFromHash(int id, Article_t *article, FILE *toRead) {
   Block_t block;
 

@@ -11,7 +11,14 @@ int main(int argc, char* argv[])
     int numberOfArticles = ftell(blockFile) / sizeof(Block_t) - 1;
     rewind(blockFile);
     
-    int id = atoi(argv[1]);
+    
+    int id;
+
+    if(argc > 1){
+      id = atoi(argv[1]);
+    }else{
+      std::cin >> id;
+    }
 
     Article_t article;
 

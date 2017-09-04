@@ -6,12 +6,14 @@
 #include <cstdlib>
 #include <iostream>
 
+#define PRIMARY_MAX_KEYS 680 //!< Max keys count
+#define PRIMARY_RIGHT_MIDDLE_KEY (PRIMARY_MAX_KEYS >> 1) //!< The position of the middle key
+#define PRIMARY_LEFT_MIDDLE_KEY (PRIMARY_RIGHT_MIDDLE_KEY - 1) //!< The block pointers count
+#define PRIMARY_HALF_MAX_KEYS PRIMARY_RIGHT_MIDDLE_KEY //!< The half count of the maxium keys count
 
-#define PRIMARY_MAX_KEYS 680 // m = 340
-#define PRIMARY_RIGHT_MIDDLE_KEY (PRIMARY_MAX_KEYS >> 1)
-#define PRIMARY_LEFT_MIDDLE_KEY (PRIMARY_RIGHT_MIDDLE_KEY - 1)
-#define PRIMARY_HALF_MAX_KEYS PRIMARY_RIGHT_MIDDLE_KEY
-
+/**
+* A struct used for save the response of the recursive insertion method
+*/
 struct PrimaryBTreeRecursionResponse {
   bool hasBeenSplit;
   int promotedKey;
@@ -19,6 +21,9 @@ struct PrimaryBTreeRecursionResponse {
   PrimaryBTreeRecursionResponse(bool, int, unsigned short);
 };
 
+/**
+* A struct used for abstract the concept of node
+*/
 struct PrimaryBTreeNode {
   unsigned short count;
   unsigned short countPointers;
@@ -31,6 +36,9 @@ struct PrimaryBTreeNode {
   unsigned short insert(int key); //[TROCAR]
 };
 
+/**
+* An union used to represent an interpretation of the node regardins blocks
+*/
 union PrimaryBTreeNodeReinterpret {
   PrimaryBTreeNode node;
   AbstractBlock_t block;
@@ -45,11 +53,17 @@ union PrimaryBTreeNodeReinterpret {
   }
 };
 
+/**
+* An union used to represent an interpretation of the header regardins blocks
+*/
 union PrimaryBTreeHeaderReinterpret{
   unsigned short offset;
   AbstractBlock_t block;
 };
 
+/**
+* A class abstracting the btree
+*/
 class PrimaryBTree {
 private:
   PrimaryBTreeRecursionResponse SUCCESSFUL_TREE_INSERTION;

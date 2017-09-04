@@ -6,7 +6,7 @@ CFLAGS=-std=c++11 -g -Wall
 INCLUDE_PATH=src
 SRC_PATH=src
 
-all: upload findrec seek1 seek2 debug clean
+all: upload findrec seek1 seek2 clean
 
 seek1: seek1.o
 	$(CC) -o seek1 iohandler.o seek1.o primarybtree.o article.o block.o hashfinder.o $(CFLAGS)

@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <iostream>
 
-#define RELATIVE_LEFT -1
-#define RELATIVE_MIDDLE 0
-#define RELATIVE_RIGHT 1
+#define RELATIVE_LEFT -1  //!< An position relative to the left
+#define RELATIVE_MIDDLE 0 //!< An position relative to the middle
+#define RELATIVE_RIGHT 1 //!< An position relative to the right
 
 /**
 * Perform a binary search on the array
@@ -34,6 +34,9 @@ static inline int lowerBound(T* array, int length, K value)
     return std::lower_bound(array, array + length, value) - array;
 }
 
+/**
+* Retrieves and return the index where the value must be placed
+*/
 template <typename T, typename K>
 static inline std::pair<bool, int> binarySearch(T* array, int length, K value)
 {
@@ -46,6 +49,9 @@ static inline std::pair<bool, int> binarySearch(T* array, int length, K value)
     return { false, position };
 }
 
+/**
+* Retrieves and return the index where the value must be placed
+*/
 template <typename T, typename K>
 static inline std::pair<bool, int> secondaryBinarySearch(T* array, int length, K value)
 {
@@ -61,12 +67,12 @@ static inline std::pair<bool, int> secondaryBinarySearch(T* array, int length, K
 
 
 
-template <typename T>
 /**
 * Perform a ordered insert
 * @In : receive an array, a length and a value
 * @Out : void
 */
+template <typename T>
 static inline std::pair<bool, unsigned short> orderedInsert(T* array, unsigned short &length, T& value)
 {
   unsigned short currentSeekPosition = 0;
