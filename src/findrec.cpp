@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-  FILE* blockFile = fopen("./data.block", "rb+");
+  FILE* blockFile = fopen("files/data.block", "rb+");
   if (blockFile != NULL) {
 
     fseek(blockFile, sizeof(Block_t), SEEK_END);

@@ -1,5 +1,5 @@
 #include "secondarybtree.hpp"
-SecondaryBTreeRecursionResponse::SecondaryBTreeRecursionResponse(bool _hasBeenSplit, SecondaryBTreeDataMap& _promotedKey, unsigned short _newBlockOffset)
+SecondaryBTreeRecursionResponse::SecondaryBTreeRecursionResponse(bool _hasBeenSplit, SecondaryBTreeDataMap& _promotedKey, int _newBlockOffset)
     : hasBeenSplit(_hasBeenSplit)
     , newBlockOffset(_newBlockOffset)
 {
@@ -51,10 +51,10 @@ bool SecondaryBTreeNode::hasRoom()
 /**
 * Insert a key in a node and returns the index where the insertion was made.
 */
-unsigned short SecondaryBTreeNode::insert(SecondaryBTreeDataMap& key)
+int SecondaryBTreeNode::insert(SecondaryBTreeDataMap& key)
 { // [TROCAR]
 
-    unsigned short i;
+    int i;
 
     for (i = count; i >= 1; i--) {
         if (key > keys[i - 1]) {
@@ -98,7 +98,7 @@ void inline writeBackNode(SecondaryBTreeNode* node, int offset, FILE* indexFile)
 void SecondaryBTree::readRoot(FILE* indexFile)
 {
     rewind(indexFile);
-    fread(&rootOffset, sizeof(unsigned short), 1, indexFile);
+    fread(&rootOffset, sizeof(int), 1, indexFile);
 
     SecondaryBTreeNodeReinterpret* reinterpretation = (SecondaryBTreeNodeReinterpret*)this->root;
 
@@ -191,13 +191,14 @@ SecondaryBTreeRecursionResponse SecondaryBTree::insertRecursive(SecondaryBTreeDa
         // return { true, { promoted, offset } };
         return SecondaryBTreeRecursionResponse(true, promoted, offset);
     }
-
+    //key.key[299] = '\0';
     int result = upperBound(nodeReinterpretation->node.keys, nodeReinterpretation->node.count, key); // [TROCAR]
+
     //auto resultPair = u(nodeReinterpretation->node.keys, nodeReinterpretation->node.count, key);
-    unsigned short childNodeOffset;
+    int childNodeOffset;
 
     if (result >= nodeReinterpretation->node.count) {
-        childNodeOffset = (unsigned short)result;
+        childNodeOffset = result;
         result = nodeReinterpretation->node.count - 1;
     }
 
@@ -216,7 +217,7 @@ SecondaryBTreeRecursionResponse SecondaryBTree::insertRecursive(SecondaryBTreeDa
         //caso 1 - tem espaço para inserir o promovido
         if (nodeReinterpretation->node.hasRoom()) {
             //o + 1 é para não realizar essa soma em toda iteração do for logo abaixo
-            unsigned short rightIndexInserted = nodeReinterpretation->node.insert(resultRecursion.promotedKey) + 1;
+            int rightIndexInserted = nodeReinterpretation->node.insert(resultRecursion.promotedKey) + 1;
 
             for (unsigned short i = nodeReinterpretation->node.countPointers; i > rightIndexInserted; --i) {
                 nodeReinterpretation->node.blockPointers[i] = nodeReinterpretation->node.blockPointers[i - 1];
@@ -247,13 +248,13 @@ SecondaryBTreeRecursionResponse SecondaryBTree::insertRecursive(SecondaryBTreeDa
                 --nodeReinterpretation->node.count;
 
                 // índice do ponteiro mais à direita do vetor blockPointers
-                unsigned short greaterNodeBlockPointer = nodeReinterpretation->node.blockPointers[nodeReinterpretation->node.countPointers - 1]; // a subtração tem a ver com índice
+                int greaterNodeBlockPointer = nodeReinterpretation->node.blockPointers[nodeReinterpretation->node.countPointers - 1]; // a subtração tem a ver com índice
 
                 //índice em que foi inserido o promovido no nó já existente
-                unsigned short rightIndexInserted = nodeReinterpretation->node.insert(resultRecursion.promotedKey) + 1;
+                int rightIndexInserted = nodeReinterpretation->node.insert(resultRecursion.promotedKey) + 1;
 
                 //remanejar os blockPoints
-                for (unsigned short i = nodeReinterpretation->node.countPointers - 1; i > rightIndexInserted; --i) {
+                for (int i = nodeReinterpretation->node.countPointers - 1; i > rightIndexInserted; --i) {
                     nodeReinterpretation->node.blockPointers[i] = nodeReinterpretation->node.blockPointers[i - 1];
                 }
 
@@ -279,7 +280,7 @@ SecondaryBTreeRecursionResponse SecondaryBTree::insertRecursive(SecondaryBTreeDa
                 } // não esquecer de manipular os blockPointes para nós não-folha/
 
                 split->node.blockPointers[SECONDARY_HALF_MAX_KEYS - 1] = nodeReinterpretation->node.blockPointers[SECONDARY_MAX_KEYS];
-                unsigned short rightIndexInserted = split->node.insert(resultRecursion.promotedKey) + 1;
+                int rightIndexInserted = split->node.insert(resultRecursion.promotedKey) + 1;
 
                 //remanejar os blockPoints
                 for (unsigned short i = split->node.countPointers - 1; i > rightIndexInserted; --i) {
@@ -309,7 +310,7 @@ SecondaryBTreeRecursionResponse SecondaryBTree::insertRecursive(SecondaryBTreeDa
 
     return SUCCESSFUL_TREE_INSERTION;
     // return SecondaryBTreeRecursionResponse(false, 0, 0);
-    // return { false, { 0, 0 } };
+    // return { false, { 0, 0 } };*/
 }
 
 void SecondaryBTree::insert(SecondaryBTreeDataMap& key, FILE* indexFile)
@@ -361,7 +362,7 @@ std::pair<bool, int> SecondaryBTree::getArticle(SecondaryBTreeDataMap& key, Arti
             return { false, 0 };
         }
         //std::cout << "It was supposed to be in this position in the block : " << currentPointer.second << '\n';
-        unsigned short toSeek = currentPointer.second >= reinterpretation->node.count ? reinterpretation->node.blockPointers[reinterpretation->node.count] : (key < reinterpretation->node.keys[currentPointer.second] ? reinterpretation->node.blockPointers[currentPointer.second] : reinterpretation->node.blockPointers[currentPointer.second + 1]);
+        int toSeek = currentPointer.second >= reinterpretation->node.count ? reinterpretation->node.blockPointers[reinterpretation->node.count] : (key < reinterpretation->node.keys[currentPointer.second] ? reinterpretation->node.blockPointers[currentPointer.second] : reinterpretation->node.blockPointers[currentPointer.second + 1]);
         // std::cout << "Seeking between " << reinterpretation->node.blockPointers[currentPointer.second] << " and " << reinterpretation->node.blockPointers[currentPointer.second + 1] << '\n';
         //std::cout << "New block to search : " << toSeek << "\n\n";
 
@@ -374,7 +375,7 @@ std::pair<bool, int> SecondaryBTree::getArticle(SecondaryBTreeDataMap& key, Arti
 
     //std::cout << "Found at the position " << currentPointer.second << '\n';
 
-    FILE* blockFile = fopen("./data.block", "rb+");
+    FILE* blockFile = fopen("files/data.block", "rb+");
     if (blockFile != NULL) {
         rewind(blockFile);
         getArticleFromHash(reinterpretation->node.keys[currentPointer.second].dataPointer, article, blockFile);

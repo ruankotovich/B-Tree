@@ -6,8 +6,8 @@ using namespace std;
 int main()
 {
     PrimaryBTree btree;
-    FILE* indexFileWrite = fopen("test/primaryindex.block", "wb");
-    FILE* indexFileRead = fopen("test/primaryindex.block", "rb");
+    FILE* indexFileWrite = fopen("files/primaryindex.block", "wb");
+    FILE* indexFileRead = fopen("files/primaryindex.block", "rb");
     btree.buildIndex(indexFileWrite);
 
     Article_t art;

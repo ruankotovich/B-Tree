@@ -27,21 +27,21 @@ struct SecondaryBTreeDataMap {
 struct SecondaryBTreeRecursionResponse {
   bool hasBeenSplit;
   SecondaryBTreeDataMap promotedKey;
-  unsigned short newBlockOffset;
+  int newBlockOffset;
   SecondaryBTreeRecursionResponse(bool);
-  SecondaryBTreeRecursionResponse(bool, SecondaryBTreeDataMap&, unsigned short);
+  SecondaryBTreeRecursionResponse(bool, SecondaryBTreeDataMap&, int);
 };
 
 struct SecondaryBTreeNode {
   unsigned short count;
   unsigned short countPointers;
   SecondaryBTreeDataMap keys[SECONDARY_MAX_KEYS]; // 2m   -> trocar por char[SECONDARY_KEY_LENGTH] para o Título [TROCAR]
-  unsigned short blockPointers[SECONDARY_MAX_KEYS + 1]; // 2m + 1
+  int blockPointers[SECONDARY_MAX_KEYS + 1]; // 2m + 1
 
   SecondaryBTreeNode(int order);
   bool isLeaf();
   bool hasRoom();
-  unsigned short insert(SecondaryBTreeDataMap&); //[TROCAR]
+  int insert(SecondaryBTreeDataMap&); //[TROCAR]
 };
 
 union SecondaryBTreeNodeReinterpret {
@@ -59,7 +59,7 @@ union SecondaryBTreeNodeReinterpret {
 };
 
 union SecondaryBTreeHeaderReinterpret{
-  unsigned short offset;
+  int offset;
   AbstractBlock_t block;
 };
 
@@ -74,6 +74,6 @@ public:
   std::pair<bool, int> getArticle(SecondaryBTreeDataMap& key, Article_t*, FILE*);
   void buildIndex(FILE*);
   void readRoot(FILE *indexFile);
-  unsigned short rootOffset;
+  int rootOffset;
   SecondaryBTree();
 };

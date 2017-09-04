@@ -348,7 +348,7 @@ std::pair<bool, int> PrimaryBTree::getArticle(int key, Article_t* article, FILE*
 
     //std::cout << "Found at the position " << currentPointer.second << '\n';
 
-    FILE* blockFile = fopen("./data.block", "rb+");
+    FILE* blockFile = fopen("files/data.block", "rb+");
     if (blockFile != NULL) {
         rewind(blockFile);
         getArticleFromHash(reinterpretation->node.keys[currentPointer.second], article, blockFile);

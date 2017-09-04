@@ -168,25 +168,25 @@ void IOHandler::parseNext()
     readColumn(this->file, this->readBuffer, ';');
 
     std::memcpy(this->titleBuffer, this->readBuffer, FIELD_TITLE_MAX_SIZE);
-
+    this->titleBuffer[FIELD_TITLE_MAX_SIZE - 1] = '\0';
     // READ YEAR
     fscanf(this->file, "\"%d\";", &this->yearBuffer);
 
     // READ AUTHOR
     readColumn(this->file, this->readBuffer, ';');
     std::memcpy(this->authorsBuffer, this->readBuffer, FIELD_AUTHORS_MAX_SIZE);
-
+    this->authorsBuffer[FIELD_AUTHORS_MAX_SIZE - 1] = '\0';
     // READ CITATION
     fscanf(this->file, "\"%d\";", &this->citationsBuffer);
 
     // READ DATE
     readColumn(this->file, this->readBuffer, ';');
     std::memcpy(this->dateBuffer, this->readBuffer, FIELD_DATE_MAX_SIZE);
-
+    this->dateBuffer[FIELD_DATE_MAX_SIZE - 1] = '\0';
     // READ SNIPPET
     readColumn(this->file, readBuffer, ';');
     std::memcpy(this->snippetBuffer, this->readBuffer, FIELD_SNIPPET_MAX_SIZE);
-
+    this->snippetBuffer[FIELD_SNIPPET_MAX_SIZE - 1] = '\0';
     this->state = IOHANDLER_READY;
   } else {
     this->state = IOHANDLER_END;

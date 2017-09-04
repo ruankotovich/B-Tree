@@ -15,7 +15,7 @@ int main(int argc, char** argv)
   SecondaryBTree btree;
 
   Article_t a;
-  FILE* indexFile = fopen("test/secondaryindex.block", "rb");
+  FILE* indexFile = fopen("files/secondaryindex.block", "rb");
 
   btree.readRoot(indexFile);
 

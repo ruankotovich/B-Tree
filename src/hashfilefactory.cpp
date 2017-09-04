@@ -8,8 +8,8 @@
 void HashFileFactory::createBinaryFilePerfectHash(FILE *toRead, FILE *toWrite) {
   IOHandler handler(toRead);
 
-  FILE* primaryIndexFileWrite = fopen("test/primaryindex.block", "wb+");
-  FILE* secondaryIndexFileWrite = fopen("test/secondaryindex.block", "wb+");
+  FILE* primaryIndexFileWrite = fopen("files/primaryindex.block", "wb+");
+  FILE* secondaryIndexFileWrite = fopen("files/secondaryindex.block", "wb+");
 
 
   PrimaryBTree pBtree;

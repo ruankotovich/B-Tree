@@ -13,7 +13,7 @@ int main(int argc, char** argv)
     PrimaryBTree btree;
     
     Article_t a;
-    FILE* indexFile = fopen("test/primaryindex.block", "rb");
+    FILE* indexFile = fopen("files/primaryindex.block", "rb");
 
     btree.readRoot(indexFile);
 

@@ -13,11 +13,11 @@ int main()
    
     int id;
 
-    FILE* indexFile = fopen("test/primaryindex.block", "rb");
+    FILE* indexFile = fopen("files/primaryindex.block", "rb");
 
     btree.readRoot(indexFile);
 
-    FILE* keysFile = fopen("test/keyfiles.data", "rb");
+    FILE* keysFile = fopen("files/keyfiles.data", "rb");
     bool gambi = true;
 
     if (indexFile != NULL) {
